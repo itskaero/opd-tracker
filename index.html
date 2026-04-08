@@ -1,819 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
-    <title>OPD Tracker</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <!-- Ambient background blobs for glass effect -->
-    <div class="ambient">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Pediatric OPD Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Ambient glow blobs -->
+  <div class="ambient" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-left">
+        <svg height="26" width="26" viewBox="0 0 16 16" fill="#e6edf3">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span class="hdr-title">Pediatric OPD</span>
+      </div>
+      <span class="hdr-date" id="headerDate"></span>
     </div>
+  </header>
 
-    <!-- ===== HEADER ===== -->
-    <header class="header">
-      <div class="header-inner">
-        <div class="header-left">
-          <svg height="28" viewBox="0 0 16 16" width="28" class="logo-icon">
-            <path
-              fill="#f0f6fc"
-              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47
-              7.59.4.07.55-.17.55-.38
-              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
-              1.08.58 1.23.82.72 1.21 1.87.87
-              2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
-              0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
-              0 0 .67-.21 2.2.82.64-.18 1.32-.27
-              2-.27.68 0 1.36.09 2 .27 1.53-1.04
-              2.2-.82 2.2-.82.44 1.1.16 1.92.08
-              2.12.51.56.82 1.27.82 2.15 0
-              3.07-1.87 3.75-3.65 3.95.29.25.54.73.54
-              1.48 0 1.07-.01 1.93-.01
-              2.2 0 .21.15.46.55.38A8.013 8.013 0
-              0016 8c0-4.42-3.58-8-8-8z"
-            />
-          </svg>
-          <span class="header-title">Pediatric OPD</span>
-        </div>
-        <span class="header-date" id="navDate"></span>
-      </div>
-    </header>
-
-    <!-- ===== TAB NAVIGATION ===== -->
-    <nav class="tabnav">
-      <div class="tabnav-inner">
-        <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M0 1.75A.75.75 0 01.75 1h14.5a.75.75 0 010 1.5H.75A.75.75 0 010 1.75zm0 5A.75.75 0 01.75 6h14.5a.75.75 0 010 1.5H.75A.75.75 0 010 6.75zm0 5A.75.75 0 01.75 11h14.5a.75.75 0 010 1.5H.75a.75.75 0 01-.75-.75z"/>
-          </svg>
-          Dashboard
-        </button>
-        <button class="tab" data-tab="register" onclick="switchTab('register')">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M7.75 2a.75.75 0 01.75.75V7h4.25a.75.75 0 010 1.5H8.5v4.25a.75.75 0 01-1.5 0V8.5H2.75a.75.75 0 010-1.5H7V2.75A.75.75 0 017.75 2z"/>
-          </svg>
-          Register
-        </button>
-        <button class="tab" data-tab="visit" onclick="switchTab('visit')">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5h-3.32zM8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/>
-          </svg>
-          Visit
-        </button>
-        <button class="tab" data-tab="search" onclick="switchTab('search')">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06l-3.04-3.04z"/>
-          </svg>
-          Search
-        </button>
-      </div>
-      <div class="tab-indicator" id="tabIndicator"></div>
-    </nav>
-
-    <!-- ===== MAIN CONTENT ===== -->
-    <main class="main">
-      <!-- DASHBOARD -->
-      <section id="sec-dashboard" class="section active">
-        <div class="stats-grid">
-          <div class="stat-card glass">
-            <div class="stat-label">Total Patients</div>
-            <div class="stat-value" id="statPatients">0</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-label">Today's Visits</div>
-            <div class="stat-value" id="statToday">0</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-label">Admitted</div>
-            <div class="stat-value" id="statAdmitted">0</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-label">Total Visits</div>
-            <div class="stat-value" id="statTotal">0</div>
-          </div>
-        </div>
-
-        <div class="panel glass">
-          <h3 class="panel-title">Recent Visits</h3>
-          <div id="recentVisits" class="list-container"></div>
-        </div>
-
-        <div class="panel glass" id="alertsPanel" style="display: none">
-          <h3 class="panel-title">⚠ Alerts</h3>
-          <div id="alertsList" class="list-container"></div>
-        </div>
-      </section>
-
-      <!-- REGISTER -->
-      <section id="sec-register" class="section">
-        <div class="panel glass">
-          <h3 class="panel-title">Register New Patient</h3>
-          <form id="formRegister" autocomplete="off">
-            <div class="form-group">
-              <label class="form-label">Patient Name *</label>
-              <input
-                type="text"
-                id="regName"
-                class="form-input"
-                placeholder="Full name"
-                required
-              />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Age *</label>
-                <input
-                  type="number"
-                  id="regAge"
-                  class="form-input"
-                  placeholder="Age"
-                  min="0"
-                  max="18"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Unit</label>
-                <select id="regAgeUnit" class="form-input">
-                  <option value="years">Years</option>
-                  <option value="months">Months</option>
-                  <option value="days">Days</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Gender *</label>
-                <select id="regGender" class="form-input" required>
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Weight (kg)</label>
-                <input
-                  type="number"
-                  id="regWeight"
-                  class="form-input"
-                  placeholder="kg"
-                  step="0.1"
-                  min="0"
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Phone * (unique)</label>
-              <input
-                type="tel"
-                id="regPhone"
-                class="form-input"
-                placeholder="03001234567"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Guardian Name</label>
-              <input
-                type="text"
-                id="regGuardian"
-                class="form-input"
-                placeholder="Parent / Guardian"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Address</label>
-              <input
-                type="text"
-                id="regAddress"
-                class="form-input"
-                placeholder="City / Town"
-              />
-            </div>
-            <button type="submit" class="btn btn-primary btn-full">
-              Register Patient
-            </button>
-          </form>
-        </div>
-      </section>
-
-      <!-- VISIT -->
-      <section id="sec-visit" class="section">
-        <div class="panel glass">
-          <h3 class="panel-title">New OPD Visit</h3>
-          <form id="formVisit" autocomplete="off">
-            <div class="form-group">
-              <label class="form-label">Search Patient *</label>
-              <input
-                type="text"
-                id="visitSearch"
-                class="form-input"
-                placeholder="Type name or phone…"
-                oninput="searchPatientForVisit()"
-              />
-              <div
-                id="visitSearchResults"
-                class="dropdown-results"
-                style="display: none"
-              ></div>
-              <input type="hidden" id="visitPatientId" />
-            </div>
-
-            <div
-              id="visitPatientBadge"
-              class="patient-badge"
-              style="display: none"
-            ></div>
-
-            <div class="form-group">
-              <label class="form-label">Quick Complaints</label>
-              <div class="chip-group" id="chipGroup">
-                <button type="button" class="chip" data-val="Fever">
-                  🌡 Fever
-                </button>
-                <button type="button" class="chip" data-val="Cough">
-                  💨 Cough
-                </button>
-                <button type="button" class="chip" data-val="Diarrhea">
-                  🚽 Diarrhea
-                </button>
-                <button type="button" class="chip" data-val="Vomiting">
-                  🤮 Vomiting
-                </button>
-                <button type="button" class="chip" data-val="Rash">
-                  🔴 Rash
-                </button>
-                <button type="button" class="chip" data-val="Pain">
-                  😣 Pain
-                </button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Other / Notes</label>
-              <textarea
-                id="visitNotes"
-                class="form-input"
-                rows="2"
-                placeholder="Additional notes…"
-              ></textarea>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Weight (kg)</label>
-                <input
-                  type="number"
-                  id="visitWeight"
-                  class="form-input"
-                  step="0.1"
-                  min="0"
-                  placeholder="kg"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Temp (°F)</label>
-                <input
-                  type="number"
-                  id="visitTemp"
-                  class="form-input"
-                  step="0.1"
-                  placeholder="°F"
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Diagnosis</label>
-              <input
-                type="text"
-                id="visitDiagnosis"
-                class="form-input"
-                placeholder="Provisional diagnosis"
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Prescription</label>
-              <textarea
-                id="visitRx"
-                class="form-input"
-                rows="2"
-                placeholder="Medications…"
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Follow-up Date</label>
-              <input type="date" id="visitFollowup" class="form-input" />
-            </div>
-
-            <div class="form-group">
-              <label class="toggle-label">
-                <input type="checkbox" id="visitAdmit" />
-                <span class="toggle-switch"></span>
-                Admit Patient
-              </label>
-            </div>
-
-            <div id="admitFields" style="display: none">
-              <div class="form-group">
-                <label class="form-label">Ward / Bed</label>
-                <input
-                  type="text"
-                  id="visitWard"
-                  class="form-input"
-                  placeholder="e.g. Ward-A Bed-3"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Reason for Admission</label>
-                <input
-                  type="text"
-                  id="visitAdmitReason"
-                  class="form-input"
-                  placeholder="Reason"
-                />
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-full">
-              Save Visit
-            </button>
-          </form>
-        </div>
-      </section>
-
-      <!-- SEARCH -->
-      <section id="sec-search" class="section">
-        <div class="panel glass">
-          <h3 class="panel-title">Find Patient</h3>
-          <div class="form-group">
-            <input
-              type="text"
-              id="searchInput"
-              class="form-input"
-              placeholder="Search name or phone…"
-              oninput="searchPatients()"
-            />
-          </div>
-          <div id="searchResults" class="list-container"></div>
-        </div>
-
-        <!-- Patient detail (shown on click) -->
-        <div
-          id="patientDetail"
-          class="panel glass"
-          style="display: none; margin-top: 12px"
-        >
-          <div id="patientDetailContent"></div>
-        </div>
-      </section>
-    </main>
-
-    <!-- TOAST -->
-    <div id="toast" class="toast"></div>
-
-    <script src="script.js"></script>
-  </body>
-</html>          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <div class="gh-stat-card">
-                <div class="gh-stat-value text-gh-blue" id="statTodayVisits">
-                  0
-                </div>
-                <div class="gh-stat-label">Visits Today</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="gh-stat-card">
-                <div class="gh-stat-value text-gh-green" id="statTotalPatients">
-                  0
-                </div>
-                <div class="gh-stat-label">Total Patients</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="gh-stat-card">
-                <div
-                  class="gh-stat-value text-gh-orange"
-                  id="statAdmissions"
-                >
-                  0
-                </div>
-                <div class="gh-stat-label">Active Admissions</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="gh-stat-card">
-                <div
-                  class="gh-stat-value text-gh-purple"
-                  id="statTopComplaint"
-                >
-                  —
-                </div>
-                <div class="gh-stat-label">Top Complaint</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="gh-section-title">
-            <span class="gh-dot bg-gh-green"></span> Today's Visits
-          </div>
-          <div id="todayVisitsList" class="gh-list mb-3">
-            <div class="gh-empty">No visits recorded today.</div>
-          </div>
-
-          <div class="gh-section-title">
-            <span class="gh-dot bg-gh-orange"></span> Alerts
-          </div>
-          <div id="alertsList" class="gh-list mb-5">
-            <div class="gh-empty">No alerts.</div>
-          </div>
-        </div>
-
-        <!-- -------- REGISTER -------- -->
-        <div class="tab-pane fade" id="tabRegister" role="tabpanel">
-          <div class="gh-section-title mb-3">
-            <span class="gh-dot bg-gh-blue"></span> Register New Patient
-          </div>
-          <form id="formRegister" autocomplete="off" class="gh-form">
-            <div class="mb-3">
-              <label class="gh-label">Patient Name *</label>
-              <input
-                type="text"
-                class="form-control gh-input"
-                id="regName"
-                required
-                placeholder="e.g. Ahmed Ali"
-              />
-            </div>
-            <div class="row g-2 mb-3">
-              <div class="col-6">
-                <label class="gh-label">Date of Birth</label>
-                <input
-                  type="date"
-                  class="form-control gh-input"
-                  id="regDob"
-                />
-              </div>
-              <div class="col-6">
-                <label class="gh-label">Age (if DOB unknown)</label>
-                <div class="input-group">
-                  <input
-                    type="number"
-                    class="form-control gh-input"
-                    id="regAge"
-                    min="0"
-                    max="18"
-                    placeholder="Yrs"
-                  />
-                  <input
-                    type="number"
-                    class="form-control gh-input"
-                    id="regAgeMonths"
-                    min="0"
-                    max="11"
-                    placeholder="Mon"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="row g-2 mb-3">
-              <div class="col-6">
-                <label class="gh-label">Gender *</label>
-                <select class="form-select gh-input" id="regGender" required>
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="col-6">
-                <label class="gh-label">Phone Number *</label>
-                <input
-                  type="tel"
-                  class="form-control gh-input"
-                  id="regPhone"
-                  required
-                  placeholder="03001234567"
-                />
-              </div>
-            </div>
-            <div class="mb-3">
-              <label class="gh-label">Father's Name *</label>
-              <input
-                type="text"
-                class="form-control gh-input"
-                id="regFather"
-                required
-                placeholder="e.g. Muhammad Ali"
-              />
-            </div>
-            <div class="mb-3">
-              <label class="gh-label">Address (optional)</label>
-              <input
-                type="text"
-                class="form-control gh-input"
-                id="regAddress"
-                placeholder="e.g. Mohalla XYZ, Bahawalpur"
-              />
-            </div>
-
-            <div
-              id="regFeedback"
-              class="gh-feedback d-none"
-              role="alert"
-            ></div>
-
-            <button type="submit" class="btn gh-btn-primary w-100">
-              ✅ Register Patient
-            </button>
-          </form>
-        </div>
-
-        <!-- -------- VISIT -------- -->
-        <div class="tab-pane fade" id="tabVisit" role="tabpanel">
-          <div class="gh-section-title mb-2">
-            <span class="gh-dot bg-gh-green"></span> New OPD Visit
-          </div>
-
-          <!-- Step 1: Select Patient -->
-          <div id="visitStep1">
-            <div class="input-group mb-2">
-              <input
-                type="text"
-                class="form-control gh-input"
-                id="visitPatientSearch"
-                placeholder="Search patient name or phone…"
-              />
-              <button
-                class="btn gh-btn-outline"
-                type="button"
-                id="btnVisitSearch"
-              >
-                🔍
-              </button>
-            </div>
-            <div id="visitPatientResults" class="gh-list mb-2"></div>
-          </div>
-
-          <!-- Step 2: Visit form -->
-          <div id="visitStep2" class="d-none">
-            <div class="gh-patient-badge mb-2">
-              <span id="visitPatientBadge"></span>
-              <button
-                class="btn btn-sm gh-btn-outline"
-                id="btnChangePatient"
-              >
-                Change
-              </button>
-            </div>
-
-            <div
-              id="weightAlertBanner"
-              class="gh-banner-warning d-none"
-            ></div>
-
-            <form id="formVisit" autocomplete="off" class="gh-form">
-              <input type="hidden" id="visitPatientId" />
-
-              <div class="row g-2 mb-3">
-                <div class="col-6">
-                  <label class="gh-label">Visit Date</label>
-                  <input
-                    type="date"
-                    class="form-control gh-input"
-                    id="visitDate"
-                  />
-                </div>
-                <div class="col-6">
-                  <label class="gh-label">Weight (kg) *</label>
-                  <input
-                    type="number"
-                    class="form-control gh-input"
-                    id="visitWeight"
-                    step="0.1"
-                    min="0.5"
-                    max="150"
-                    required
-                    placeholder="e.g. 12.5"
-                  />
-                </div>
-              </div>
-
-              <!-- Quick Complaint Buttons -->
-              <label class="gh-label">Chief Complaint *</label>
-              <div class="d-flex flex-wrap gap-2 mb-2" id="quickComplaints">
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Fever"
-                >
-                  🌡️ Fever
-                </button>
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Cough"
-                >
-                  😷 Cough
-                </button>
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Diarrhea"
-                >
-                  💧 Diarrhea
-                </button>
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Vomiting"
-                >
-                  🤮 Vomiting
-                </button>
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Rash"
-                >
-                  🔴 Rash
-                </button>
-                <button
-                  type="button"
-                  class="gh-chip"
-                  data-val="Breathing difficulty"
-                >
-                  😮‍💨 Breathing
-                </button>
-              </div>
-              <input
-                type="text"
-                class="form-control gh-input mb-3"
-                id="visitComplaint"
-                required
-                placeholder="or type complaint here…"
-              />
-
-              <div class="row g-2 mb-3">
-                <div class="col-6">
-                  <label class="gh-label">Duration of Illness</label>
-                  <input
-                    type="text"
-                    class="form-control gh-input"
-                    id="visitDuration"
-                    placeholder="e.g. 3 days"
-                  />
-                </div>
-                <div class="col-6">
-                  <label class="gh-label">Diagnosis</label>
-                  <input
-                    type="text"
-                    class="form-control gh-input"
-                    id="visitDiagnosis"
-                    placeholder="e.g. URTI"
-                  />
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="gh-label">Treatment Given</label>
-                <textarea
-                  class="form-control gh-input"
-                  id="visitTreatment"
-                  rows="2"
-                  placeholder="Rx details…"
-                ></textarea>
-              </div>
-
-              <div class="mb-3">
-                <label class="gh-label">Follow-up Advice</label>
-                <input
-                  type="text"
-                  class="form-control gh-input"
-                  id="visitFollowup"
-                  placeholder="e.g. Follow up in 3 days"
-                />
-              </div>
-
-              <!-- Admission toggle -->
-              <div class="gh-toggle mb-3">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="visitAdmitted"
-                />
-                <label class="form-check-label" for="visitAdmitted">
-                  🏥 Admit this patient
-                </label>
-              </div>
-
-              <div id="admissionFields" class="gh-admission-box d-none">
-                <div class="row g-2">
-                  <div class="col-6">
-                    <label class="gh-label">Admission Date</label>
-                    <input
-                      type="date"
-                      class="form-control gh-input"
-                      id="admDate"
-                    />
-                  </div>
-                  <div class="col-6">
-                    <label class="gh-label">Outcome</label>
-                    <select class="form-select gh-input" id="admOutcome">
-                      <option value="Admitted">Admitted (pending)</option>
-                      <option value="Discharged">Discharged</option>
-                      <option value="LAMA">LAMA</option>
-                      <option value="Expired">Expired</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="mt-2">
-                  <label class="gh-label">Admission Diagnosis</label>
-                  <input
-                    type="text"
-                    class="form-control gh-input"
-                    id="admDiagnosis"
-                    placeholder="Admission diagnosis"
-                  />
-                </div>
-              </div>
-
-              <div
-                id="visitFeedback"
-                class="gh-feedback d-none"
-                role="alert"
-              ></div>
-
-              <button type="submit" class="btn gh-btn-green w-100 mb-5">
-                💾 Save Visit
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- -------- SEARCH / PATIENT HISTORY -------- -->
-        <div class="tab-pane fade" id="tabSearch" role="tabpanel">
-          <div class="gh-section-title mb-2">
-            <span class="gh-dot bg-gh-blue"></span> Search Patients
-          </div>
-          <div class="input-group mb-2">
-            <input
-              type="text"
-              class="form-control gh-input"
-              id="searchInput"
-              placeholder="Name or phone number…"
-            />
-            <button
-              class="btn gh-btn-primary"
-              type="button"
-              id="btnSearch"
-            >
-              🔍
-            </button>
-          </div>
-          <div id="searchResults" class="gh-list mb-3"></div>
-
-          <!-- Patient detail card -->
-          <div id="patientDetail" class="d-none">
-            <div class="gh-detail-card mb-3">
-              <div class="gh-detail-header">
-                <h6 class="mb-0" id="detailName"></h6>
-              </div>
-              <div class="gh-detail-body">
-                <div class="text-muted small" id="detailMeta"></div>
-                <div class="small" id="detailPhone"></div>
-              </div>
-            </div>
-
-            <!-- Weight Trend -->
-            <div class="gh-section-title">
-              <span class="gh-dot bg-gh-purple"></span> Weight Trend
-              <span class="text-muted small">(last 3 visits)</span>
-            </div>
-            <div class="d-flex gap-2 mb-3" id="weightTrend"></div>
-
-            <!-- Visit History -->
-            <div class="gh-section-title">
-              <span class="gh-dot bg-gh-green"></span> Visit History
-              <span class="text-muted small">(last 5)</span>
-            </div>
-            <div id="visitHistory" class="mb-5"></div>
-          </div>
-        </div>
-      </div>
+  <!-- Tabs -->
+  <nav class="tabs">
+    <div class="tabs-inner" id="tabsInner">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="register">Register</button>
+      <button class="tab" data-tab="visit">Visit</button>
+      <button class="tab" data-tab="search">Search</button>
+      <span class="tab-ink" id="tabInk"></span>
     </div>
+  </nav>
 
-    <!-- ============ SCRIPTS ============ -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="script.js"></script>
-  </body>
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ── Dashboard ── -->
+    <section class="pane active" id="pane-dashboard">
+      <div class="stat-row">
+        <div class="stat glass"><span class="stat-n" id="sPatients">0</span><span class="stat-l">Patients</span></div>
+        <div class="stat glass"><span class="stat-n" id="sToday">0</span><span class="stat-l">Today</span></div>
+        <div class="stat glass"><span class="stat-n" id="sAdmit">0</span><span class="stat-l">Admitted</span></div>
+        <div class="stat glass"><span class="stat-n" id="sVisits">0</span><span class="stat-l">All Visits</span></div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-hd">Today's Visits</div>
+        <div class="card-bd" id="dashToday"><p class="empty">No visits today.</p></div>
+      </div>
+
+      <div class="card glass" id="alertCard" style="display:none">
+        <div class="card-hd">Alerts</div>
+        <div class="card-bd" id="dashAlerts"></div>
+      </div>
+    </section>
+
+    <!-- ── Register ── -->
+    <section class="pane" id="pane-register">
+      <div class="card glass">
+        <div class="card-hd">Register New Patient</div>
+        <div class="card-bd">
+          <form id="frmReg" autocomplete="off">
+            <label class="lbl">Name <span class="req">*</span></label>
+            <input class="inp" id="rName" required placeholder="Full name" />
+
+            <div class="row2">
+              <div><label class="lbl">Age <span class="req">*</span></label><input class="inp" id="rAge" type="number" min="0" max="18" required placeholder="Age" /></div>
+              <div><label class="lbl">Unit</label>
+                <select class="inp" id="rAgeUnit"><option>Years</option><option>Months</option><option>Days</option></select>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div><label class="lbl">Gender <span class="req">*</span></label>
+                <select class="inp" id="rGender" required><option value="">Select</option><option>Male</option><option>Female</option></select>
+              </div>
+              <div><label class="lbl">Weight (kg)</label><input class="inp" id="rWeight" type="number" step="0.1" min="0" placeholder="kg" /></div>
+            </div>
+
+            <label class="lbl">Phone <span class="req">*</span> <small>(unique)</small></label>
+            <input class="inp" id="rPhone" type="tel" required placeholder="03001234567" />
+
+            <label class="lbl">Guardian</label>
+            <input class="inp" id="rGuardian" placeholder="Father / Mother" />
+
+            <label class="lbl">Address</label>
+            <input class="inp" id="rAddr" placeholder="City" />
+
+            <button type="submit" class="btn btn-green full">Register Patient</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Visit ── -->
+    <section class="pane" id="pane-visit">
+      <div class="card glass">
+        <div class="card-hd">New OPD Visit</div>
+        <div class="card-bd">
+          <form id="frmVisit" autocomplete="off">
+
+            <label class="lbl">Patient <span class="req">*</span></label>
+            <input class="inp" id="vSearch" placeholder="Search name or phone…" />
+            <div class="dd" id="vDD"></div>
+            <input type="hidden" id="vPid" />
+            <div class="badge" id="vBadge" style="display:none"></div>
+
+            <label class="lbl">Complaints <span class="req">*</span></label>
+            <div class="chips" id="vChips">
+              <button type="button" class="chip" data-c="Fever">🌡 Fever</button>
+              <button type="button" class="chip" data-c="Cough">💨 Cough</button>
+              <button type="button" class="chip" data-c="Diarrhea">🚽 Diarrhea</button>
+              <button type="button" class="chip" data-c="Vomiting">🤮 Vomiting</button>
+              <button type="button" class="chip" data-c="Rash">🔴 Rash</button>
+              <button type="button" class="chip" data-c="Pain">😣 Pain</button>
+            </div>
+
+            <label class="lbl">Notes</label>
+            <textarea class="inp" id="vNotes" rows="2" placeholder="Additional details…"></textarea>
+
+            <div class="row2">
+              <div><label class="lbl">Weight (kg)</label><input class="inp" id="vWt" type="number" step="0.1" min="0" placeholder="kg" /></div>
+              <div><label class="lbl">Temp (°F)</label><input class="inp" id="vTemp" type="number" step="0.1" placeholder="°F" /></div>
+            </div>
+
+            <label class="lbl">Diagnosis</label>
+            <input class="inp" id="vDx" placeholder="Provisional diagnosis" />
+
+            <label class="lbl">Prescription</label>
+            <textarea class="inp" id="vRx" rows="2" placeholder="Medications…"></textarea>
+
+            <label class="lbl">Follow-up</label>
+            <input class="inp" id="vFu" type="date" />
+
+            <label class="toggle"><input type="checkbox" id="vAdmit" /><span class="tgl-track"></span> Admit Patient</label>
+
+            <div id="vAdmitBox" style="display:none">
+              <label class="lbl">Ward / Bed</label>
+              <input class="inp" id="vWard" placeholder="Ward-A Bed-3" />
+              <label class="lbl">Reason</label>
+              <input class="inp" id="vAdmReason" placeholder="Admission reason" />
+            </div>
+
+            <button type="submit" class="btn btn-green full">Save Visit</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Search ── -->
+    <section class="pane" id="pane-search">
+      <div class="card glass">
+        <div class="card-hd">Find Patient</div>
+        <div class="card-bd">
+          <input class="inp" id="sInput" placeholder="Search name or phone…" />
+          <div id="sResults" class="mt12"></div>
+        </div>
+      </div>
+      <div class="card glass mt12" id="detailCard" style="display:none">
+        <div class="card-bd" id="detailBody"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
 </html>
