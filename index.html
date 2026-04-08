@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>OPD Tracker — Pediatric</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ============ TOP NAV ============ -->
+    <nav class="navbar navbar-dark bg-primary sticky-top px-3">
+      <span class="navbar-brand mb-0 h6">
+        🏥 Pediatric OPD Tracker
+      </span>
+      <span class="text-white small" id="navDate"></span>
+    </nav>
+
+    <!-- ============ TAB BAR ============ -->
+    <ul class="nav nav-tabs nav-fill mt-0" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          data-bs-toggle="tab"
+          data-bs-target="#tabDashboard"
+          type="button"
+        >
+          📊 Home
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="tab"
+          data-bs-target="#tabRegister"
+          type="button"
+        >
+          ➕ Register
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="tab"
+          data-bs-target="#tabVisit"
+          type="button"
+        >
+          🩺 Visit
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          data-bs-toggle="tab"
+          data-bs-target="#tabSearch"
+          type="button"
+        >
+          🔍 Search
+        </button>
+      </li>
+    </ul>
+
+    <!-- ============ TAB CONTENT ============ -->
+    <div class="tab-content px-2 py-3" id="mainTabContent">
+      <!-- -------- DASHBOARD -------- -->
+      <div class="tab-pane fade show active" id="tabDashboard" role="tabpanel">
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="card text-center shadow-sm border-primary">
+              <div class="card-body py-2">
+                <div class="fs-3 fw-bold text-primary" id="statTodayVisits">
+                  0
+                </div>
+                <small class="text-muted">Visits Today</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card text-center shadow-sm border-success">
+              <div class="card-body py-2">
+                <div class="fs-3 fw-bold text-success" id="statTotalPatients">
+                  0
+                </div>
+                <small class="text-muted">Total Patients</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card text-center shadow-sm border-warning">
+              <div class="card-body py-2">
+                <div class="fs-3 fw-bold text-warning" id="statAdmissions">
+                  0
+                </div>
+                <small class="text-muted">Active Admissions</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card text-center shadow-sm border-danger">
+              <div class="card-body py-2">
+                <div class="fs-3 fw-bold text-danger" id="statTopComplaint">
+                  —
+                </div>
+                <small class="text-muted">Top Complaint</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="text-muted">Today's Visits</h6>
+        <div id="todayVisitsList" class="list-group mb-3">
+          <div class="text-muted text-center small py-3">
+            No visits recorded today.
+          </div>
+        </div>
+
+        <h6 class="text-muted">⚠️ Alerts</h6>
+        <div id="alertsList" class="list-group mb-5">
+          <div class="text-muted text-center small py-3">No alerts.</div>
+        </div>
+      </div>
+
+      <!-- -------- REGISTER -------- -->
+      <div class="tab-pane fade" id="tabRegister" role="tabpanel">
+        <h5 class="mb-3">Register New Patient</h5>
+        <form id="formRegister" autocomplete="off">
+          <div class="mb-2">
+            <label class="form-label mb-0">Patient Name *</label>
+            <input
+              type="text"
+              class="form-control"
+              id="regName"
+              required
+              placeholder="e.g. Ahmed Ali"
+            />
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label mb-0">Date of Birth</label>
+              <input type="date" class="form-control" id="regDob" />
+            </div>
+            <div class="col-6">
+              <label class="form-label mb-0">Age (if DOB unknown)</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  class="form-control"
+                  id="regAge"
+                  min="0"
+                  max="18"
+                  placeholder="Years"
+                />
+                <input
+                  type="number"
+                  class="form-control"
+                  id="regAgeMonths"
+                  min="0"
+                  max="11"
+                  placeholder="Mon"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label mb-0">Gender *</label>
+              <select class="form-select" id="regGender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label mb-0">Phone Number *</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="regPhone"
+                required
+                placeholder="03001234567"
+              />
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label mb-0">Father's Name *</label>
+            <input
+              type="text"
+              class="form-control"
+              id="regFather"
+              required
+              placeholder="e.g. Muhammad Ali"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label mb-0">Address (optional)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="regAddress"
+              placeholder="e.g. Mohalla XYZ, Bahawalpur"
+            />
+          </div>
+
+          <div
+            id="regFeedback"
+            class="alert d-none py-2"
+            role="alert"
+          ></div>
+
+          <button type="submit" class="btn btn-primary w-100 btn-lg">
+            ✅ Register Patient
+          </button>
+        </form>
+      </div>
+
+      <!-- -------- VISIT -------- -->
+      <div class="tab-pane fade" id="tabVisit" role="tabpanel">
+        <h5 class="mb-2">New OPD Visit</h5>
+
+        <!-- Step 1: Select Patient -->
+        <div id="visitStep1">
+          <div class="input-group mb-2">
+            <input
+              type="text"
+              class="form-control"
+              id="visitPatientSearch"
+              placeholder="Search patient name or phone…"
+            />
+            <button
+              class="btn btn-outline-primary"
+              type="button"
+              id="btnVisitSearch"
+            >
+              🔍
+            </button>
+          </div>
+          <div id="visitPatientResults" class="list-group mb-2"></div>
+        </div>
+
+        <!-- Step 2: Visit form (hidden until patient selected) -->
+        <div id="visitStep2" class="d-none">
+          <div
+            class="alert alert-info py-2 d-flex justify-content-between align-items-center"
+          >
+            <span id="visitPatientBadge"></span>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              id="btnChangePatient"
+            >
+              Change
+            </button>
+          </div>
+
+          <!-- Weight alert banner -->
+          <div
+            id="weightAlertBanner"
+            class="alert alert-warning py-1 d-none small"
+          ></div>
+
+          <form id="formVisit" autocomplete="off">
+            <input type="hidden" id="visitPatientId" />
+
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label mb-0">Visit Date</label>
+                <input type="date" class="form-control" id="visitDate" />
+              </div>
+              <div class="col-6">
+                <label class="form-label mb-0">Weight (kg) *</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="visitWeight"
+                  step="0.1"
+                  min="0.5"
+                  max="150"
+                  required
+                  placeholder="e.g. 12.5"
+                />
+              </div>
+            </div>
+
+            <!-- Quick Complaint Buttons -->
+            <label class="form-label mb-1">Chief Complaint *</label>
+            <div class="d-flex flex-wrap gap-2 mb-2" id="quickComplaints">
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-quick"
+                data-val="Fever"
+              >
+                🌡️ Fever
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning btn-quick"
+                data-val="Cough"
+              >
+                😷 Cough
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-success btn-quick"
+                data-val="Diarrhea"
+              >
+                💧 Diarrhea
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-info btn-quick"
+                data-val="Vomiting"
+              >
+                🤮 Vomiting
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-quick"
+                data-val="Rash"
+              >
+                🔴 Rash
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-dark btn-quick"
+                data-val="Breathing difficulty"
+              >
+                😮‍💨 Breathing
+              </button>
+            </div>
+            <input
+              type="text"
+              class="form-control mb-2"
+              id="visitComplaint"
+              required
+              placeholder="or type complaint here…"
+            />
+
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="form-label mb-0">Duration of Illness</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="visitDuration"
+                  placeholder="e.g. 3 days"
+                />
+              </div>
+              <div class="col-6">
+                <label class="form-label mb-0">Diagnosis</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="visitDiagnosis"
+                  placeholder="e.g. URTI"
+                />
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label mb-0">Treatment Given</label>
+              <textarea
+                class="form-control"
+                id="visitTreatment"
+                rows="2"
+                placeholder="Rx details…"
+              ></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label mb-0">Follow-up Advice</label>
+              <input
+                type="text"
+                class="form-control"
+                id="visitFollowup"
+                placeholder="e.g. Follow up in 3 days"
+              />
+            </div>
+
+            <!-- Admission toggle -->
+            <div class="form-check form-switch mb-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="visitAdmitted"
+              />
+              <label class="form-check-label fw-bold" for="visitAdmitted">
+                🏥 Admit this patient
+              </label>
+            </div>
+
+            <div id="admissionFields" class="d-none border rounded p-2 mb-2">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label mb-0">Admission Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="admDate"
+                  />
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Outcome</label>
+                  <select class="form-select" id="admOutcome">
+                    <option value="Admitted">Admitted (pending)</option>
+                    <option value="Discharged">Discharged</option>
+                    <option value="LAMA">LAMA</option>
+                    <option value="Expired">Expired</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mt-2">
+                <label class="form-label mb-0">Admission Diagnosis</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="admDiagnosis"
+                  placeholder="Admission diagnosis"
+                />
+              </div>
+            </div>
+
+            <div
+              id="visitFeedback"
+              class="alert d-none py-2"
+              role="alert"
+            ></div>
+
+            <button type="submit" class="btn btn-success w-100 btn-lg mb-5">
+              💾 Save Visit
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- -------- SEARCH / PATIENT HISTORY -------- -->
+      <div class="tab-pane fade" id="tabSearch" role="tabpanel">
+        <h5 class="mb-2">Search Patients</h5>
+        <div class="input-group mb-2">
+          <input
+            type="text"
+            class="form-control"
+            id="searchInput"
+            placeholder="Name or phone number…"
+          />
+          <button
+            class="btn btn-primary"
+            type="button"
+            id="btnSearch"
+          >
+            🔍
+          </button>
+        </div>
+        <div id="searchResults" class="list-group mb-3"></div>
+
+        <!-- Patient detail card (hidden until selected) -->
+        <div id="patientDetail" class="d-none">
+          <div class="card shadow-sm mb-2">
+            <div class="card-body py-2">
+              <h6 class="card-title mb-1" id="detailName"></h6>
+              <div class="small text-muted" id="detailMeta"></div>
+              <div class="small" id="detailPhone"></div>
+            </div>
+          </div>
+
+          <!-- Weight Trend -->
+          <h6 class="text-muted">📈 Weight Trend (last 3 visits)</h6>
+          <div class="d-flex gap-2 mb-2" id="weightTrend"></div>
+
+          <!-- Visit History -->
+          <h6 class="text-muted">🩺 Visit History (last 5)</h6>
+          <div
+            id="visitHistory"
+            class="accordion mb-5"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCRIPTS ============ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+  </html>
