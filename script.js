@@ -1,106 +1,557 @@
-/* ==========================================================
-   OPD Patient Tracking System — GitHub Dark Theme
-   Uses localStorage for offline-first data persistence
-   ========================================================== */
+/* =============================================
+   OPD Tracker — script.js
+   ============================================= */
 
-// ────────────────────────────────────────────
-// 1. DATA LAYER
-// ────────────────────────────────────────────
-
+// ---------- DATA LAYER ----------
 const DB = {
-  getPatients() {
-    return JSON.parse(localStorage.getItem("opd_patients") || "{}");
+  _get(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
   },
-  savePatients(map) {
-    localStorage.setItem("opd_patients", JSON.stringify(map));
+  _set(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
   },
-  addPatient(p) {
-    const map = this.getPatients();
-    map[p.patient_id] = p;
-    this.savePatients(map);
+  patients() {
+    return this._get("opd_patients");
   },
-  getPatientById(id) {
-    return this.getPatients()[id] || null;
+  savePatients(arr) {
+    this._set("opd_patients", arr);
   },
-  findByPhone(phone) {
-    const map = this.getPatients();
-    return Object.values(map).find((p) => p.phone === phone) || null;
-  },
-  searchPatients(query) {
-    const q = query.toLowerCase().trim();
-    if (!q) return [];
-    return Object.values(this.getPatients()).filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.phone.includes(q) ||
-        p.father_name.toLowerCase().includes(q)
-    );
-  },
-
-  getVisits() {
-    return JSON.parse(localStorage.getItem("opd_visits") || "[]");
+  visits() {
+    return this._get("opd_visits");
   },
   saveVisits(arr) {
-    localStorage.setItem("opd_visits", JSON.stringify(arr));
-  },
-  addVisit(v) {
-    const arr = this.getVisits();
-    arr.push(v);
-    this.saveVisits(arr);
-  },
-  getVisitsByPatient(patientId) {
-    return this.getVisits()
-      .filter((v) => v.patient_id === patientId)
-      .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
-  },
-
-  nextPatientId() {
-    let seq = parseInt(localStorage.getItem("opd_pat_seq") || "0", 10);
-    seq++;
-    localStorage.setItem("opd_pat_seq", String(seq));
-    return "P-" + String(seq).padStart(5, "0");
-  },
-  nextVisitId() {
-    let seq = parseInt(localStorage.getItem("opd_vis_seq") || "0", 10);
-    seq++;
-    localStorage.setItem("opd_vis_seq", String(seq));
-    return "V-" + String(seq).padStart(6, "0");
+    this._set("opd_visits", arr);
   },
 };
 
-// ────────────────────────────────────────────
-// 2. UTILITIES
-// ────────────────────────────────────────────
+// ---------- SEED DUMMY DATA ----------
+function seedData() {
+  if (localStorage.getItem("opd_seeded")) return;
+  const patients = [
+    {
+      id: "P001",
+      name: "Ahmed Ali",
+      age: 5,
+      ageUnit: "years",
+      gender: "Male",
+      weight: 18,
+      phone: "03001234567",
+      guardian: "Tariq Ali",
+      address: "Bahawalpur",
+      createdAt: "2026-04-01T09:00:00",
+    },
+    {
+      id: "P002",
+      name: "Fatima Bibi",
+      age: 8,
+      ageUnit: "months",
+      gender: "Female",
+      weight: 7.5,
+      phone: "03119876543",
+      guardian: "Nasreen",
+      address: "Rahim Yar Khan",
+      createdAt: "2026-04-02T10:00:00",
+    },
+    {
+      id: "P003",
+      name: "Bilal Khan",
+      age: 3,
+      ageUnit: "years",
+      gender: "Male",
+      weight: 13,
+      phone: "03211112222",
+      guardian: "Imran Khan",
+      address: "Multan",
+      createdAt: "2026-04-03T08:30:00",
+    },
+  ];
 
-function todayISO() {
+  const today = "2026-04-08";
+  const visits = [
+    {
+      id: "V001",
+      patientId: "P001",
+      date: "2026-04-05",
+      complaints: ["Fever", "Cough"],
+      notes: "Running nose since 2 days",
+      weight: 18,
+      temp: 101.2,
+      diagnosis: "URTI",
+      rx: "Paracetamol 250mg TDS x 3 days",
+      followup: "2026-04-08",
+      admitted: false,
+      ward: "",
+      admitReason: "",
+    },
+    {
+      id: "V002",
+      patientId: "P002",
+      date: "2026-04-06",
+      complaints: ["Diarrhea", "Vomiting"],
+      notes: "Watery stools x6, vomiting x3",
+      weight: 7.2,
+      temp: 99.8,
+      diagnosis: "AGE with mild dehydration",
+      rx: "ORS, Zinc 10mg OD x 14 days",
+      followup: "2026-04-08",
+      admitted: true,
+      ward: "Ward-B Bed-2",
+      admitReason: "Dehydration requiring IV fluids",
+    },
+    {
+      id: "V003",
+      patientId: "P003",
+      date: "2026-04-07",
+      complaints: ["Fever", "Rash"],
+      notes: "Maculopapular rash on trunk",
+      weight: 13,
+      temp: 102.5,
+      diagnosis: "Measles — suspected",
+      rx: "Vitamin A, Paracetamol",
+      followup: "2026-04-10",
+      admitted: false,
+      ward: "",
+      admitReason: "",
+    },
+    {
+      id: "V004",
+      patientId: "P001",
+      date: today,
+      complaints: ["Cough"],
+      notes: "Follow-up — fever resolved, cough persists",
+      weight: 17.8,
+      temp: 98.6,
+      diagnosis: "Resolving URTI",
+      rx: "Continue Paracetamol PRN, honey for cough",
+      followup: "",
+      admitted: false,
+      ward: "",
+      admitReason: "",
+    },
+    {
+      id: "V005",
+      patientId: "P002",
+      date: today,
+      complaints: ["Diarrhea"],
+      notes: "Stools improving, tolerating ORS",
+      weight: 7.3,
+      temp: 98.9,
+      diagnosis: "AGE — improving",
+      rx: "Continue ORS + Zinc",
+      followup: "2026-04-10",
+      admitted: true,
+      ward: "Ward-B Bed-2",
+      admitReason: "Continued monitoring",
+    },
+  ];
+
+  DB.savePatients(patients);
+  DB.saveVisits(visits);
+  localStorage.setItem("opd_seeded", "true");
+}
+
+// ---------- UTILITY ----------
+function uid() {
+  return "P" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function vidGen() {
+  return "V" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
 function fmtDate(d) {
   if (!d) return "—";
-  const dt = new Date(d + "T00:00:00");
-  return dt.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const dt = new Date(d);
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
 }
 
-function ageString(patient) {
-  if (patient.dob) {
-    const now = new Date();
-    const birth = new Date(patient.dob + "T00:00:00");
-    let years = now.getFullYear() - birth.getFullYear();
-    let months = now.getMonth() - birth.getMonth();
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    if (years > 0) return `${years}y ${months}m`;
-    return `${months}m`;
+function showToast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.className = "toast";
+  }, 2500);
+}
+
+// ---------- TAB SYSTEM ----------
+let currentTab = "dashboard";
+
+function switchTab(tab) {
+  currentTab = tab;
+  // Update buttons
+  document.querySelectorAll(".tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tab);
+  });
+  // Update sections
+  document.querySelectorAll(".section").forEach((sec) => {
+    sec.classList.toggle("active", sec.id === "sec-" + tab);
+  });
+  // Move indicator
+  moveIndicator();
+  // Refresh data if needed
+  if (tab === "dashboard") refreshDashboard();
+}
+
+function moveIndicator() {
+  const activeBtn = document.querySelector(".tab.active");
+  const indicator = document.getElementById("tabIndicator");
+  if (!activeBtn || !indicator) return;
+  const nav = document.querySelector(".tabnav-inner");
+  const navRect = nav.getBoundingClientRect();
+  const btnRect = activeBtn.getBoundingClientRect();
+  indicator.style.left = btnRect.left - navRect.left + "px";
+  indicator.style.width = btnRect.width + "px";
+}
+
+// ---------- DASHBOARD ----------
+function refreshDashboard() {
+  const patients = DB.patients();
+  const visits = DB.visits();
+  const today = todayStr();
+
+  document.getElementById("statPatients").textContent = patients.length;
+  document.getElementById("statToday").textContent = visits.filter(
+    (v) => v.date === today
+  ).length;
+  document.getElementById("statAdmitted").textContent = visits.filter(
+    (v) => v.admitted
+  ).length;
+  document.getElementById("statTotal").textContent = visits.length;
+
+  // Recent visits (last 10)
+  const sorted = [...visits].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+  const recent = sorted.slice(0, 10);
+  const container = document.getElementById("recentVisits");
+
+  if (recent.length === 0) {
+    container.innerHTML = '<div class="empty-state">No visits yet</div>';
+  } else {
+    container.innerHTML = recent
+      .map((v) => {
+        const p = patients.find((pt) => pt.id === v.patientId);
+        const name = p ? p.name : "Unknown";
+        const tags = v.complaints
+          .map((c) => `<span class="tag tag-blue">${c}</span>`)
+          .join(" ");
+        const admitTag = v.admitted
+          ? ' <span class="tag tag-red">Admitted</span>'
+          : "";
+        return `
+        <div class="list-item" onclick="showPatientFromVisit('${v.patientId}')">
+          <div class="list-item-header">
+            <span class="list-item-name">${name}</span>
+            <span class="list-item-date">${fmtDate(v.date)}</span>
+          </div>
+          <div class="list-item-sub">${tags}${admitTag}</div>
+          ${v.diagnosis ? `<div class="list-item-sub" style="margin-top:3px">${v.diagnosis}</div>` : ""}
+        </div>`;
+      })
+      .join("");
   }
-  const y = patient.age || 0;
-  const m = patient.ageMonths || 0;
+
+  // Alerts
+  buildAlerts(patients, visits);
+}
+
+function buildAlerts(patients, visits) {
+  const alerts = [];
+  const today = todayStr();
+
+  patients.forEach((p) => {
+    const pVisits = visits
+      .filter((v) => v.patientId === p.id)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Frequent visitor (3+ visits in 14 days)
+    const recent14 = pVisits.filter((v) => {
+      const diff =
+        (new Date(today) - new Date(v.date)) / (1000 * 60 * 60 * 24);
+      return diff <= 14;
+    });
+    if (recent14.length >= 3) {
+      alerts.push(
+        `<div class="alert-item">⚠ <strong>${p.name}</strong> — ${recent14.length} visits in 14 days</div>`
+      );
+    }
+
+    // Weight loss
+    if (pVisits.length >= 2) {
+      const latest = pVisits[0];
+      const prev = pVisits[1];
+      if (latest.weight && prev.weight && latest.weight < prev.weight) {
+        const loss = (prev.weight - latest.weight).toFixed(1);
+        alerts.push(
+          `<div class="alert-item">⚠ <strong>${p.name}</strong> — weight loss of ${loss} kg</div>`
+        );
+      }
+    }
+
+    // Follow-up due today
+    pVisits.forEach((v) => {
+      if (v.followup === today) {
+        alerts.push(
+          `<div class="alert-item">📅 <strong>${p.name}</strong> — follow-up due today</div>`
+        );
+      }
+    });
+  });
+
+  const panel = document.getElementById("alertsPanel");
+  const list = document.getElementById("alertsList");
+  if (alerts.length > 0) {
+    panel.style.display = "block";
+    list.innerHTML = alerts.join("");
+  } else {
+    panel.style.display = "none";
+  }
+}
+
+function showPatientFromVisit(patientId) {
+  switchTab("search");
+  setTimeout(() => showPatientDetail(patientId), 100);
+}
+
+// ---------- REGISTER ----------
+document.getElementById("formRegister").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.getElementById("regName").value.trim();
+  const age = parseInt(document.getElementById("regAge").value);
+  const ageUnit = document.getElementById("regAgeUnit").value;
+  const gender = document.getElementById("regGender").value;
+  const weight = parseFloat(document.getElementById("regWeight").value) || null;
+  const phone = document.getElementById("regPhone").value.trim();
+  const guardian = document.getElementById("regGuardian").value.trim();
+  const address = document.getElementById("regAddress").value.trim();
+
+  if (!name || isNaN(age) || !gender || !phone) {
+    showToast("Please fill all required fields", "error");
+    return;
+  }
+
+  // Validate phone uniqueness
+  const patients = DB.patients();
+  if (patients.find((p) => p.phone === phone)) {
+    showToast("Phone number already registered!", "error");
+    return;
+  }
+
+  const patient = {
+    id: uid(),
+    name,
+    age,
+    ageUnit,
+    gender,
+    weight,
+    phone,
+    guardian,
+    address,
+    createdAt: new Date().toISOString(),
+  };
+
+  patients.push(patient);
+  DB.savePatients(patients);
+  e.target.reset();
+  showToast("✓ Patient registered", "success");
+});
+
+// ---------- VISIT ----------
+let selectedComplaints = new Set();
+
+// Chip toggle
+document.querySelectorAll(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const val = chip.dataset.val;
+    if (selectedComplaints.has(val)) {
+      selectedComplaints.delete(val);
+      chip.classList.remove("active");
+    } else {
+      selectedComplaints.add(val);
+      chip.classList.add("active");
+    }
+  });
+});
+
+// Admit toggle
+document.getElementById("visitAdmit").addEventListener("change", (e) => {
+  document.getElementById("admitFields").style.display = e.target.checked
+    ? "block"
+    : "none";
+});
+
+// Patient search for visit
+function searchPatientForVisit() {
+  const q = document.getElementById("visitSearch").value.trim().toLowerCase();
+  const container = document.getElementById("visitSearchResults");
+  if (q.length < 2) {
+    container.style.display = "none";
+    return;
+  }
+  const patients = DB.patients().filter(
+    (p) =>
+      p.name.toLowerCase().includes(q) || p.phone.includes(q)
+  );
+  if (patients.length === 0) {
+    container.innerHTML =
+      '<div class="dropdown-item"><small>No patients found</small></div>';
+  } else {
+    container.innerHTML = patients
+      .map(
+        (p) =>
+          `<div class="dropdown-item" onclick="selectPatientForVisit('${p.id}')">
+            <strong>${p.name}</strong> <small>— ${p.phone} · ${p.age} ${p.ageUnit}</small>
+          </div>`
+      )
+      .join("");
+  }
+  container.style.display = "block";
+}
+
+function selectPatientForVisit(id) {
+  const p = DB.patients().find((pt) => pt.id === id);
+  if (!p) return;
+  document.getElementById("visitPatientId").value = id;
+  document.getElementById("visitSearch").value = "";
+  document.getElementById("visitSearchResults").style.display = "none";
+
+  const badge = document.getElementById("visitPatientBadge");
+  badge.innerHTML = `
+    <span><strong>${p.name}</strong> — ${p.age} ${p.ageUnit}, ${p.gender} · ${p.phone}</span>
+    <button class="badge-close" onclick="clearVisitPatient()">✕</button>
+  `;
+  badge.style.display = "flex";
+}
+
+function clearVisitPatient() {
+  document.getElementById("visitPatientId").value = "";
+  document.getElementById("visitPatientBadge").style.display = "none";
+}
+
+// Submit visit
+document.getElementById("formVisit").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const patientId = document.getElementById("visitPatientId").value;
+  if (!patientId) {
+    showToast("Please select a patient", "error");
+    return;
+  }
+  if (selectedComplaints.size === 0) {
+    showToast("Please select at least one complaint", "error");
+    return;
+  }
+
+  const visit = {
+    id: vidGen(),
+    patientId,
+    date: todayStr(),
+    complaints: [...selectedComplaints],
+    notes: document.getElementById("visitNotes").value.trim(),
+    weight:
+      parseFloat(document.getElementById("visitWeight").value) || null,
+    temp: parseFloat(document.getElementById("visitTemp").value) || null,
+    diagnosis: document.getElementById("visitDiagnosis").value.trim(),
+    rx: document.getElementById("visitRx").value.trim(),
+    followup: document.getElementById("visitFollowup").value,
+    admitted: document.getElementById("visitAdmit").checked,
+    ward: document.getElementById("visitWard").value.trim(),
+    admitReason: document.getElementById("visitAdmitReason").value.trim(),
+  };
+
+  const visits = DB.visits();
+  visits.push(visit);
+  DB.saveVisits(visits);
+
+  // Reset form
+  e.target.reset();
+  selectedComplaints.clear();
+  document.querySelectorAll(".chip").forEach((c) =>
+    c.classList.remove("active")
+  );
+  clearVisitPatient();
+  document.getElementById("admitFields").style.display = "none";
+  showToast("✓ Visit saved", "success");
+});
+
+// ---------- SEARCH ----------
+function searchPatients() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  const container = document.getElementById("searchResults");
+  document.getElementById("patientDetail").style.display = "none";
+
+  if (q.length < 1) {
+    container.innerHTML = '<div class="empty-state">Type to search…</div>';
+    return;
+  }
+
+  const patients = DB.patients().filter(
+    (p) =>
+      p.name.toLowerCase().includes(q) || p.phone.includes(q)
+  );
+  const visits = DB.visits();
+
+  if (patients.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state">No patients found</div>';
+    return;
+  }
+
+  container.innerHTML = patients
+    .map((p) => {
+      const vCount = visits.filter((v) => v.patientId === p.id).length;
+      const isAdmitted = visits.some(
+        (v) => v.patientId === p.id && v.admitted
+      );
+      return `
+      <div class="list-item" onclick="showPatientDetail('${p.id}')">
+        <div class="list-item-header">
+          <span class="list-item-name">${p.name}</span>
+          <span>
+            ${isAdmitted ? '<span class="tag tag-red">Admitted</span>' : ""}
+            <span class="tag tag-green">${vCount} visits</span>
+          </span>
+        </div>
+        <div class="list-item-sub">${p.age} ${p.ageUnit} · ${p.gender} · ${p.phone}</div>
+      </div>`;
+    })
+    .join("");
+}
+
+function showPatientDetail(id) {
+  const p = DB.patients().find((pt) => pt.id === id);
+  if (!p) return;
+
+  const visits = DB.visits()
+    .filter((v) => v.patientId === id)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const initials = p.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  let html = `
+    <div class="detail-header">
+      <div class="detail-avatar">${initials}</div>
+      <div>
+        <div class="detail-name">${p.name}</div>
+        <div class="detail-meta">${p.age} ${p.ageUnit*  const m = patient.ageMonths || 0;
   if (y > 0) return `${y}y ${m}m`;
   return `${m}m`;
 }
