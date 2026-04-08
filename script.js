@@ -1,33 +1,13 @@
 /* ==========================================================
-   OPD Patient Tracking System — Core Logic
-   Uses localStorage (IndexedDB-free for maximum compatibility)
+   OPD Patient Tracking System — GitHub Dark Theme
+   Uses localStorage for offline-first data persistence
    ========================================================== */
 
 // ────────────────────────────────────────────
-// 1. DATA LAYER — localStorage helpers
+// 1. DATA LAYER
 // ────────────────────────────────────────────
 
-/**
- * All patients stored under key "opd_patients"
- * Structure: { [patient_id]: PatientObject }
- *
- * PatientObject = {
- *   patient_id, name, dob, age, ageMonths, gender,
- *   father_name, phone, address, created_at
- * }
- *
- * All visits stored under key "opd_visits"
- * Structure: [ VisitObject, ... ]
- *
- * VisitObject = {
- *   visit_id, patient_id, visit_date, weight, complaint,
- *   duration, diagnosis, treatment, followup,
- *   admitted, admission: { date, diagnosis, outcome } | null
- * }
- */
-
 const DB = {
-  // --- Patients ---
   getPatients() {
     return JSON.parse(localStorage.getItem("opd_patients") || "{}");
   },
@@ -57,7 +37,6 @@ const DB = {
     );
   },
 
-  // --- Visits ---
   getVisits() {
     return JSON.parse(localStorage.getItem("opd_visits") || "[]");
   },
@@ -75,31 +54,28 @@ const DB = {
       .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
   },
 
-  // --- ID Generators ---
   nextPatientId() {
     let seq = parseInt(localStorage.getItem("opd_pat_seq") || "0", 10);
     seq++;
-    localStorage.setItem("opd_pat_seq", seq);
+    localStorage.setItem("opd_pat_seq", String(seq));
     return "P-" + String(seq).padStart(5, "0");
   },
   nextVisitId() {
     let seq = parseInt(localStorage.getItem("opd_vis_seq") || "0", 10);
     seq++;
-    localStorage.setItem("opd_vis_seq", seq);
+    localStorage.setItem("opd_vis_seq", String(seq));
     return "V-" + String(seq).padStart(6, "0");
   },
 };
 
 // ────────────────────────────────────────────
-// 2. UTILITY HELPERS
+// 2. UTILITIES
 // ────────────────────────────────────────────
 
-/** Today as YYYY-MM-DD */
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Format date for display */
 function fmtDate(d) {
   if (!d) return "—";
   const dt = new Date(d + "T00:00:00");
@@ -110,7 +86,6 @@ function fmtDate(d) {
   });
 }
 
-/** Calculate age string from dob or stored age */
 function ageString(patient) {
   if (patient.dob) {
     const now = new Date();
@@ -130,16 +105,14 @@ function ageString(patient) {
   return `${m}m`;
 }
 
-/** Show a feedback alert inside a container */
 function showFeedback(elId, message, type = "success") {
   const el = document.getElementById(elId);
-  el.className = `alert alert-${type} py-2`;
+  el.className = `gh-feedback ${type}`;
   el.textContent = message;
   el.classList.remove("d-none");
-  setTimeout(() => el.classList.add("d-none"), 3000);
+  setTimeout(() => el.classList.add("d-none"), 3500);
 }
 
-/** Sanitize input to prevent XSS in innerHTML */
 function esc(str) {
   const d = document.createElement("div");
   d.textContent = str || "";
@@ -147,12 +120,13 @@ function esc(str) {
 }
 
 // ────────────────────────────────────────────
-// 3. SEED SAMPLE DATA (runs once)
+// 3. SEED SAMPLE DATA
 // ────────────────────────────────────────────
 
 function seedSampleData() {
   if (localStorage.getItem("opd_seeded")) return;
 
+  const today = todayISO();
   const patients = [
     {
       patient_id: "P-00001",
@@ -192,7 +166,6 @@ function seedSampleData() {
     },
   ];
 
-  const today = todayISO();
   const visits = [
     {
       visit_id: "V-000001",
@@ -283,14 +256,14 @@ function renderDashboard() {
   const visits = DB.getVisits();
   const today = todayISO();
 
-  // Stats
   const todayVisits = visits.filter((v) => v.visit_date === today);
+
   document.getElementById("statTodayVisits").textContent =
     todayVisits.length;
   document.getElementById("statTotalPatients").textContent =
     Object.keys(patients).length;
 
-  // Active admissions (outcome === "Admitted")
+  // Active admissions
   const activeAdm = visits.filter(
     (v) => v.admitted && v.admission && v.admission.outcome === "Admitted"
   );
@@ -298,72 +271,72 @@ function renderDashboard() {
     activeAdm.length;
 
   // Top complaint today
-  const complaintCount = {};
+  const cc = {};
   todayVisits.forEach((v) => {
     const c = v.complaint || "Other";
-    complaintCount[c] = (complaintCount[c] || 0) + 1;
+    cc[c] = (cc[c] || 0) + 1;
   });
-  const topComplaint =
-    Object.entries(complaintCount).sort((a, b) => b[1] - a[1])[0] ||
-    null;
-  document.getElementById("statTopComplaint").textContent = topComplaint
-    ? topComplaint[0]
+  const top = Object.entries(cc).sort((a, b) => b[1] - a[1])[0] || null;
+  document.getElementById("statTopComplaint").textContent = top
+    ? top[0]
     : "—";
 
   // Today's visit list
   const listEl = document.getElementById("todayVisitsList");
   if (todayVisits.length === 0) {
     listEl.innerHTML =
-      '<div class="text-muted text-center small py-3">No visits recorded today.</div>';
+      '<div class="gh-empty">No visits recorded today.</div>';
   } else {
     listEl.innerHTML = todayVisits
       .map((v) => {
         const p = patients[v.patient_id];
         const name = p ? esc(p.name) : v.patient_id;
         const admBadge = v.admitted
-          ? ' <span class="badge bg-danger">ADM</span>'
+          ? ' <span class="gh-badge gh-badge-red">ADM</span>'
           : "";
-        return `<div class="list-group-item list-group-item-action py-2" onclick="openPatientDetail('${v.patient_id}')">
-          <div class="d-flex justify-content-between">
-            <strong>${name}</strong>
-            <span class="badge bg-primary">${esc(v.complaint)}</span>
+        return `<div class="gh-list-item" onclick="openPatientDetail('${v.patient_id}')">
+          <div class="d-flex justify-content-between align-items-center">
+            <strong style="color:var(--gh-text)">${name}</strong>
+            <span class="gh-badge gh-badge-blue">${esc(v.complaint)}</span>
           </div>
-          <small class="text-muted">${esc(v.diagnosis || "")} · ${v.weight} kg${admBadge}</small>
+          <div style="font-size:12px;color:var(--gh-text-muted);margin-top:2px">
+            ${esc(v.diagnosis || "—")} · <span style="font-family:monospace">${v.weight} kg</span>${admBadge}
+          </div>
         </div>`;
       })
       .join("");
   }
 
-  // Alerts: frequent visits or weight loss
+  // Alerts
   const alertsEl = document.getElementById("alertsList");
   const alertItems = [];
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyAgo = new Date();
+  thirtyAgo.setDate(thirtyAgo.getDate() - 30);
 
   Object.values(patients).forEach((p) => {
-    const pVisits = DB.getVisitsByPatient(p.patient_id);
+    const pv = DB.getVisitsByPatient(p.patient_id);
 
-    // Frequent visits (>3 in 30 days)
-    const recentCount = pVisits.filter(
-      (v) => new Date(v.visit_date) >= thirtyDaysAgo
+    // Frequent visits
+    const recentCount = pv.filter(
+      (v) => new Date(v.visit_date) >= thirtyAgo
     ).length;
     if (recentCount > 3) {
       alertItems.push({
         type: "warning",
-        text: `${p.name} — ${recentCount} visits in 30 days (frequent visitor)`,
+        text: `${p.name} — ${recentCount} visits in 30 days`,
         pid: p.patient_id,
       });
     }
 
-    // Weight loss between last 2 visits
-    if (pVisits.length >= 2) {
-      const latest = pVisits[0].weight;
-      const previous = pVisits[1].weight;
-      if (latest < previous) {
-        const diff = (previous - latest).toFixed(1);
+    // Weight loss
+    if (pv.length >= 2) {
+      const latest = pv[0].weight;
+      const prev = pv[1].weight;
+      if (latest < prev) {
+        const diff = (prev - latest).toFixed(1);
         alertItems.push({
           type: "danger",
-          text: `${p.name} — weight dropped by ${diff} kg (${previous}→${latest})`,
+          text: `${p.name} — weight ↓ ${diff} kg (${prev} → ${latest})`,
           pid: p.patient_id,
         });
       }
@@ -371,14 +344,14 @@ function renderDashboard() {
   });
 
   if (alertItems.length === 0) {
-    alertsEl.innerHTML =
-      '<div class="text-muted text-center small py-3">No alerts.</div>';
+    alertsEl.innerHTML = '<div class="gh-empty">No alerts.</div>';
   } else {
     alertsEl.innerHTML = alertItems
       .map(
         (a) =>
-          `<div class="list-group-item alert-item ${a.type === "danger" ? "alert-danger-custom" : ""}" onclick="openPatientDetail('${a.pid}')">
-            ${a.type === "danger" ? "🔴" : "⚠️"} ${esc(a.text)}
+          `<div class="gh-alert-item ${a.type}" onclick="openPatientDetail('${a.pid}')">
+            <span>${a.type === "danger" ? "🔴" : "🟡"}</span>
+            <span>${esc(a.text)}</span>
           </div>`
       )
       .join("");
@@ -393,12 +366,10 @@ document.getElementById("formRegister").addEventListener("submit", (e) => {
   e.preventDefault();
 
   const phone = document.getElementById("regPhone").value.trim();
-
-  // Duplicate check by phone
   if (DB.findByPhone(phone)) {
     showFeedback(
       "regFeedback",
-      `⚠️ Patient with phone ${phone} already exists!`,
+      `Patient with phone ${phone} already exists!`,
       "danger"
     );
     return;
@@ -434,107 +405,118 @@ document.getElementById("formRegister").addEventListener("submit", (e) => {
 
 let selectedPatientId = null;
 
-// -- Visit: Patient search --
+// Visit patient search
 function doVisitSearch() {
   const q = document.getElementById("visitPatientSearch").value.trim();
   const results = DB.searchPatients(q);
   const el = document.getElementById("visitPatientResults");
+  if (!q) {
+    el.innerHTML = "";
+    return;
+  }
   if (results.length === 0) {
     el.innerHTML =
-      '<div class="list-group-item text-muted small">No patients found.</div>';
+      '<div class="gh-empty">No patients found. Register first.</div>';
     return;
   }
   el.innerHTML = results
     .map(
       (p) =>
-        `<div class="list-group-item list-group-item-action py-2" onclick="selectVisitPatient('${p.patient_id}')">
-          <strong>${esc(p.name)}</strong>
-          <span class="text-muted small">· ${esc(p.phone)} · ${ageString(p)} · s/o ${esc(p.father_name)}</span>
+        `<div class="gh-list-item" onclick="selectVisitPatient('${p.patient_id}')">
+          <strong style="color:var(--gh-text)">${esc(p.name)}</strong>
+          <span style="font-size:12px;color:var(--gh-text-muted)">
+            · ${esc(p.phone)} · ${ageString(p)} · s/o ${esc(p.father_name)}
+          </span>
         </div>`
     )
     .join("");
 }
 
-document.getElementById("btnVisitSearch").addEventListener("click", doVisitSearch);
-document.getElementById("visitPatientSearch").addEventListener("keyup", (e) => {
-  if (e.key === "Enter") doVisitSearch();
-  // Live search after 2 chars
-  if (e.target.value.trim().length >= 2) doVisitSearch();
-});
+document
+  .getElementById("btnVisitSearch")
+  .addEventListener("click", doVisitSearch);
+document
+  .getElementById("visitPatientSearch")
+  .addEventListener("keyup", (e) => {
+    if (e.key === "Enter") doVisitSearch();
+    if (e.target.value.trim().length >= 2) doVisitSearch();
+  });
 
-// -- Visit: Select patient --
+// Select patient for visit
 window.selectVisitPatient = function (pid) {
   const p = DB.getPatientById(pid);
   if (!p) return;
   selectedPatientId = pid;
   document.getElementById("visitPatientId").value = pid;
   document.getElementById("visitPatientBadge").innerHTML =
-    `<strong>${esc(p.name)}</strong> · ${ageString(p)} · ${esc(p.phone)}`;
+    `<strong>${esc(p.name)}</strong>
+     <span style="color:var(--gh-text-muted);font-size:12px">
+       · ${ageString(p)} · ${esc(p.gender)} · ${esc(p.phone)}
+     </span>`;
 
-  // Show/hide steps
   document.getElementById("visitStep1").classList.add("d-none");
   document.getElementById("visitStep2").classList.remove("d-none");
   document.getElementById("visitPatientResults").innerHTML = "";
 
-  // Set defaults
   document.getElementById("visitDate").value = todayISO();
   document.getElementById("admDate").value = todayISO();
 
-  // Weight alert (show previous weight)
+  // Show previous weight
   const prevVisits = DB.getVisitsByPatient(pid);
   const banner = document.getElementById("weightAlertBanner");
   if (prevVisits.length > 0) {
-    banner.textContent = `Last weight: ${prevVisits[0].weight} kg on ${fmtDate(prevVisits[0].visit_date)}`;
+    banner.textContent = `📋 Last weight: ${prevVisits[0].weight} kg on ${fmtDate(prevVisits[0].visit_date)}`;
     banner.classList.remove("d-none");
   } else {
     banner.classList.add("d-none");
   }
 };
 
-// -- Visit: Change patient --
+// Change patient
 document.getElementById("btnChangePatient").addEventListener("click", () => {
   selectedPatientId = null;
   document.getElementById("visitStep1").classList.remove("d-none");
   document.getElementById("visitStep2").classList.add("d-none");
   document.getElementById("formVisit").reset();
-  clearQuickComplaints();
+  clearChips();
 });
 
-// -- Quick complaint buttons --
-function clearQuickComplaints() {
-  document.querySelectorAll(".btn-quick").forEach((b) => {
-    b.classList.remove("active-quick");
+// Quick complaint chips
+function clearChips() {
+  document.querySelectorAll(".gh-chip").forEach((c) => {
+    c.classList.remove("active");
   });
 }
 
-document.querySelectorAll(".btn-quick").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    clearQuickComplaints();
-    btn.classList.add("active-quick");
+document.querySelectorAll(".gh-chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    clearChips();
+    chip.classList.add("active");
     document.getElementById("visitComplaint").value =
-      btn.getAttribute("data-val");
+      chip.getAttribute("data-val");
   });
 });
 
-// Sync text input with quick buttons
 document.getElementById("visitComplaint").addEventListener("input", (e) => {
   const val = e.target.value.trim();
-  clearQuickComplaints();
-  document.querySelectorAll(".btn-quick").forEach((btn) => {
-    if (btn.getAttribute("data-val").toLowerCase() === val.toLowerCase()) {
-      btn.classList.add("active-quick");
+  clearChips();
+  document.querySelectorAll(".gh-chip").forEach((chip) => {
+    if (
+      chip.getAttribute("data-val").toLowerCase() === val.toLowerCase()
+    ) {
+      chip.classList.add("active");
     }
   });
 });
 
-// -- Admission toggle --
+// Admission toggle
 document.getElementById("visitAdmitted").addEventListener("change", (e) => {
   document
     .getElementById("admissionFields")
     .classList.toggle("d-none", !e.target.checked);
 });
 
-// -- Submit visit --
+// Submit visit
 document.getElementById("formVisit").addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -571,20 +553,18 @@ document.getElementById("formVisit").addEventListener("submit", (e) => {
     "success"
   );
 
-  // Reset form but keep patient selected for rapid entry
+  // Reset form, keep patient selected for rapid entry
   document.getElementById("formVisit").reset();
   document.getElementById("visitDate").value = todayISO();
   document.getElementById("admDate").value = todayISO();
-  document
-    .getElementById("admissionFields")
-    .classList.add("d-none");
-  clearQuickComplaints();
+  document.getElementById("admissionFields").classList.add("d-none");
+  clearChips();
 
-  // Update weight banner
-  const prevVisits = DB.getVisitsByPatient(visit.patient_id);
+  // Refresh weight banner
+  const pv = DB.getVisitsByPatient(visit.patient_id);
   const banner = document.getElementById("weightAlertBanner");
-  if (prevVisits.length > 0) {
-    banner.textContent = `Last weight: ${prevVisits[0].weight} kg on ${fmtDate(prevVisits[0].visit_date)}`;
+  if (pv.length > 0) {
+    banner.textContent = `📋 Last weight: ${pv[0].weight} kg on ${fmtDate(pv[0].visit_date)}`;
     banner.classList.remove("d-none");
   }
 
@@ -597,57 +577,4 @@ document.getElementById("formVisit").addEventListener("submit", (e) => {
 
 function doSearch() {
   const q = document.getElementById("searchInput").value.trim();
-  const results = DB.searchPatients(q);
-  const el = document.getElementById("searchResults");
-  document.getElementById("patientDetail").classList.add("d-none");
-
-  if (results.length === 0) {
-    el.innerHTML =
-      '<div class="list-group-item text-muted small">No patients found.</div>';
-    return;
-  }
-  el.innerHTML = results
-    .map(
-      (p) =>
-        `<div class="list-group-item list-group-item-action py-2" onclick="openPatientDetail('${p.patient_id}')">
-          <div class="d-flex justify-content-between">
-            <strong>${esc(p.name)}</strong>
-            <span class="badge bg-secondary">${esc(p.patient_id)}</span>
-          </div>
-          <small class="text-muted">s/o ${esc(p.father_name)} · ${esc(p.phone)} · ${ageString(p)} · ${esc(p.gender)}</small>
-        </div>`
-    )
-    .join("");
-}
-
-document.getElementById("btnSearch").addEventListener("click", doSearch);
-document.getElementById("searchInput").addEventListener("keyup", (e) => {
-  if (e.key === "Enter") doSearch();
-  if (e.target.value.trim().length >= 2) doSearch();
-});
-
-// -- Open patient detail (used from search and dashboard) --
-window.openPatientDetail = function (pid) {
-  // Switch to search tab
-  const searchTab = document.querySelector(
-    '[data-bs-target="#tabSearch"]'
-  );
-  bootstrap.Tab.getOrCreateInstance(searchTab).show();
-
-  const p = DB.getPatientById(pid);
-  if (!p) return;
-
-  document.getElementById("searchResults").innerHTML = "";
-  document.getElementById("patientDetail").classList.remove("d-none");
-
-  document.getElementById("detailName").textContent =
-    `${p.name} (${p.patient_id})`;
-  document.getElementById("detailMeta").textContent =
-    `${ageString(p)} · ${p.gender} · s/o ${p.father_name}`;
-  document.getElementById("detailPhone").innerHTML =
-    `📞 ${esc(p.phone)}${p.address ? " · 📍 " + esc(p.address) : ""}`;
-
-  const visits = DB.getVisitsByPatient(pid);
-
-  // Weight trend (last 3)
-  const trendEl = document.getElementById("weightTrend");
+  const results = DB.searchPatients(q_
