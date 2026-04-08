@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no"
+  />
   <title>Pediatric OPD Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!-- Ambient glow blobs -->
+  <!-- Ambient Background -->
   <div class="ambient" aria-hidden="true">
     <div class="blob b1"></div>
     <div class="blob b2"></div>
@@ -18,156 +20,509 @@
   <header class="hdr">
     <div class="hdr-inner">
       <div class="hdr-left">
-        <svg height="26" width="26" viewBox="0 0 16 16" fill="#e6edf3">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        <svg
+          height="26"
+          width="26"
+          viewBox="0 0 16 16"
+          fill="#e6edf3"
+        >
+          <path
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53
+            5.47 7.59.4.07.55-.17.55-.38
+            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
+            1.08.58 1.23.82.72 1.21 1.87.87
+            2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
+            0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+            0 0 .67-.21 2.2.82.64-.18 1.32-.27
+            2-.27.68 0 1.36.09 2 .27 1.53-1.04
+            2.2-.82 2.2-.82.44 1.1.16 1.92.08
+            2.12.51.56.82 1.27.82 2.15 0
+            3.07-1.87 3.75-3.65 3.95.29.25.54.73.54
+            1.48 0 1.07-.01 1.93-.01 2.2 0
+            .21.15.46.55.38A8.013 8.013 0 0016
+            8c0-4.42-3.58-8-8-8z"
+          />
         </svg>
         <span class="hdr-title">Pediatric OPD</span>
       </div>
-      <span class="hdr-date" id="headerDate"></span>
+      <div class="hdr-right">
+        <span class="hdr-date" id="headerDate"></span>
+        <button
+          class="hdr-btn"
+          onclick="exportData()"
+          title="Export backup"
+        >
+          ⬇ Export
+        </button>
+        <button
+          class="hdr-btn"
+          onclick="triggerImport()"
+          title="Import backup"
+        >
+          ⬆ Import
+        </button>
+        <input
+          type="file"
+          accept=".json"
+          class="file-hidden"
+          id="importFile"
+          onchange="importData(event)"
+        />
+      </div>
     </div>
   </header>
 
   <!-- Tabs -->
   <nav class="tabs">
     <div class="tabs-inner" id="tabsInner">
-      <button class="tab active" data-tab="dashboard">Dashboard</button>
-      <button class="tab" data-tab="register">Register</button>
+      <button class="tab active" data-tab="dashboard">
+        Dashboard
+      </button>
+      <button class="tab" data-tab="register">
+        Register
+      </button>
       <button class="tab" data-tab="visit">Visit</button>
+      <button class="tab" data-tab="admissions">
+        Admitted
+      </button>
       <button class="tab" data-tab="search">Search</button>
       <span class="tab-ink" id="tabInk"></span>
     </div>
   </nav>
 
-  <!-- Content -->
+  <!-- Main Content -->
   <main class="content">
-
-    <!-- ── Dashboard ── -->
+    <!-- Dashboard -->
     <section class="pane active" id="pane-dashboard">
       <div class="stat-row">
-        <div class="stat glass"><span class="stat-n" id="sPatients">0</span><span class="stat-l">Patients</span></div>
-        <div class="stat glass"><span class="stat-n" id="sToday">0</span><span class="stat-l">Today</span></div>
-        <div class="stat glass"><span class="stat-n" id="sAdmit">0</span><span class="stat-l">Admitted</span></div>
-        <div class="stat glass"><span class="stat-n" id="sVisits">0</span><span class="stat-l">All Visits</span></div>
+        <div class="stat glass">
+          <span class="stat-n" id="stPat">0</span>
+          <span class="stat-l">Patients</span>
+        </div>
+        <div class="stat glass">
+          <span class="stat-n" id="stTod">0</span>
+          <span class="stat-l">Today</span>
+        </div>
+        <div class="stat glass">
+          <span class="stat-n" id="stAdm">0</span>
+          <span class="stat-l">Admitted</span>
+        </div>
+        <div class="stat glass">
+          <span class="stat-n" id="stVis">0</span>
+          <span class="stat-l">All Visits</span>
+        </div>
       </div>
 
       <div class="card glass">
         <div class="card-hd">Today's Visits</div>
-        <div class="card-bd" id="dashToday"><p class="empty">No visits today.</p></div>
+        <div class="card-bd" id="dashToday">
+          <p class="empty">No visits today.</p>
+        </div>
       </div>
 
-      <div class="card glass" id="alertCard" style="display:none">
-        <div class="card-hd">Alerts</div>
+      <div
+        class="card glass"
+        id="alertCard"
+        style="display: none"
+      >
+        <div class="card-hd">⚠ Alerts</div>
         <div class="card-bd" id="dashAlerts"></div>
       </div>
     </section>
 
-    <!-- ── Register ── -->
+    <!-- Register -->
     <section class="pane" id="pane-register">
       <div class="card glass">
         <div class="card-hd">Register New Patient</div>
         <div class="card-bd">
           <form id="frmReg" autocomplete="off">
-            <label class="lbl">Name <span class="req">*</span></label>
-            <input class="inp" id="rName" required placeholder="Full name" />
+            <label class="lbl">
+              Name <span class="req">*</span>
+            </label>
+            <input
+              class="inp"
+              id="rName"
+              required
+              placeholder="Full name"
+            />
 
             <div class="row2">
-              <div><label class="lbl">Age <span class="req">*</span></label><input class="inp" id="rAge" type="number" min="0" max="18" required placeholder="Age" /></div>
-              <div><label class="lbl">Unit</label>
-                <select class="inp" id="rAgeUnit"><option>Years</option><option>Months</option><option>Days</option></select>
+              <div>
+                <label class="lbl">Date of Birth</label>
+                <input class="inp" id="rDob" type="date" />
+              </div>
+              <div>
+                <label class="lbl">
+                  OR Age <span class="req">*</span>
+                </label>
+                <div class="row2">
+                  <input
+                    class="inp"
+                    id="rAge"
+                    type="number"
+                    min="0"
+                    max="18"
+                    placeholder="Age"
+                  />
+                  <select class="inp" id="rAgeUnit">
+                    <option>Years</option>
+                    <option>Months</option>
+                    <option>Days</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div class="row2">
-              <div><label class="lbl">Gender <span class="req">*</span></label>
-                <select class="inp" id="rGender" required><option value="">Select</option><option>Male</option><option>Female</option></select>
+            <div class="row3">
+              <div>
+                <label class="lbl">
+                  Gender <span class="req">*</span>
+                </label>
+                <select class="inp" id="rGender" required>
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
               </div>
-              <div><label class="lbl">Weight (kg)</label><input class="inp" id="rWeight" type="number" step="0.1" min="0" placeholder="kg" /></div>
+              <div>
+                <label class="lbl">Weight (kg)</label>
+                <input
+                  class="inp"
+                  id="rWeight"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="kg"
+                />
+              </div>
+              <div>
+                <label class="lbl">Blood Group</label>
+                <select class="inp" id="rBlood">
+                  <option value="">Unknown</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                  <option>O+</option>
+                  <option>O-</option>
+                </select>
+              </div>
             </div>
 
-            <label class="lbl">Phone <span class="req">*</span> <small>(unique)</small></label>
-            <input class="inp" id="rPhone" type="tel" required placeholder="03001234567" />
+            <label class="lbl">
+              Phone <small>(optional)</small>
+            </label>
+            <input
+              class="inp"
+              id="rPhone"
+              type="tel"
+              placeholder="03001234567"
+            />
+
+            <label class="lbl">
+              Emergency Contact <small>(optional)</small>
+            </label>
+            <div class="row2">
+              <input
+                class="inp"
+                id="rEmName"
+                placeholder="Contact name"
+              />
+              <input
+                class="inp"
+                id="rEmPhone"
+                type="tel"
+                placeholder="Phone number"
+              />
+            </div>
 
             <label class="lbl">Guardian</label>
-            <input class="inp" id="rGuardian" placeholder="Father / Mother" />
+            <input
+              class="inp"
+              id="rGuardian"
+              placeholder="Father / Mother name"
+            />
 
             <label class="lbl">Address</label>
-            <input class="inp" id="rAddr" placeholder="City" />
+            <input
+              class="inp"
+              id="rAddr"
+              placeholder="City / Area"
+            />
 
-            <button type="submit" class="btn btn-green full">Register Patient</button>
+            <label class="lbl">
+              Allergies <small>(important)</small>
+            </label>
+            <input
+              class="inp"
+              id="rAllergy"
+              placeholder="e.g. Penicillin, Eggs…"
+            />
+
+            <button type="submit" class="btn btn-green full">
+              Register Patient
+            </button>
           </form>
         </div>
       </div>
     </section>
 
-    <!-- ── Visit ── -->
+    <!-- Visit -->
     <section class="pane" id="pane-visit">
       <div class="card glass">
         <div class="card-hd">New OPD Visit</div>
         <div class="card-bd">
           <form id="frmVisit" autocomplete="off">
-
-            <label class="lbl">Patient <span class="req">*</span></label>
-            <input class="inp" id="vSearch" placeholder="Search name or phone…" />
+            <label class="lbl">
+              Patient <span class="req">*</span>
+            </label>
+            <input
+              class="inp"
+              id="vSearch"
+              placeholder="Search name, phone, or MR#…"
+            />
             <div class="dd" id="vDD"></div>
             <input type="hidden" id="vPid" />
-            <div class="badge" id="vBadge" style="display:none"></div>
+            <div
+              class="badge"
+              id="vBadge"
+              style="display: none"
+            ></div>
+            <div
+              class="allergy-warn"
+              id="vAllergyWarn"
+              style="display: none"
+            ></div>
 
-            <label class="lbl">Complaints <span class="req">*</span></label>
+            <label class="lbl">Severity</label>
+            <div class="sev-row">
+              <button type="button" class="sev" data-s="Routine">
+                Routine
+              </button>
+              <button type="button" class="sev" data-s="Urgent">
+                Urgent
+              </button>
+              <button
+                type="button"
+                class="sev"
+                data-s="Emergency"
+              >
+                Emergency
+              </button>
+              <button
+                type="button"
+                class="sev"
+                data-s="Follow-up"
+              >
+                Follow-up
+              </button>
+            </div>
+            <input type="hidden" id="vSev" value="Routine" />
+
+            <label class="lbl">
+              Complaints <span class="req">*</span>
+            </label>
             <div class="chips" id="vChips">
-              <button type="button" class="chip" data-c="Fever">🌡 Fever</button>
-              <button type="button" class="chip" data-c="Cough">💨 Cough</button>
-              <button type="button" class="chip" data-c="Diarrhea">🚽 Diarrhea</button>
-              <button type="button" class="chip" data-c="Vomiting">🤮 Vomiting</button>
-              <button type="button" class="chip" data-c="Rash">🔴 Rash</button>
-              <button type="button" class="chip" data-c="Pain">😣 Pain</button>
+              <button type="button" class="chip" data-c="Fever">
+                🌡 Fever
+              </button>
+              <button type="button" class="chip" data-c="Cough">
+                💨 Cough
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Diarrhea"
+              >
+                🚽 Diarrhea
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Vomiting"
+              >
+                🤮 Vomiting
+              </button>
+              <button type="button" class="chip" data-c="Rash">
+                🔴 Rash
+              </button>
+              <button type="button" class="chip" data-c="Pain">
+                😣 Pain
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Breathing Difficulty"
+              >
+                🫁 Breathing
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Seizure"
+              >
+                ⚡ Seizure
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Ear Pain"
+              >
+                👂 Ear
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-c="Sore Throat"
+              >
+                🗣 Throat
+              </button>
             </div>
 
             <label class="lbl">Notes</label>
-            <textarea class="inp" id="vNotes" rows="2" placeholder="Additional details…"></textarea>
+            <textarea
+              class="inp"
+              id="vNotes"
+              rows="2"
+              placeholder="Additional details…"
+            ></textarea>
 
-            <div class="row2">
-              <div><label class="lbl">Weight (kg)</label><input class="inp" id="vWt" type="number" step="0.1" min="0" placeholder="kg" /></div>
-              <div><label class="lbl">Temp (°F)</label><input class="inp" id="vTemp" type="number" step="0.1" placeholder="°F" /></div>
+            <div class="row3">
+              <div>
+                <label class="lbl">Weight (kg)</label>
+                <input
+                  class="inp"
+                  id="vWt"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="kg"
+                />
+              </div>
+              <div>
+                <label class="lbl">Temp (°F)</label>
+                <input
+                  class="inp"
+                  id="vTemp"
+                  type="number"
+                  step="0.1"
+                  placeholder="°F"
+                />
+              </div>
+              <div>
+                <label class="lbl">HR (bpm)</label>
+                <input
+                  class="inp"
+                  id="vHr"
+                  type="number"
+                  min="0"
+                  placeholder="bpm"
+                />
+              </div>
+            </div>
+            <div class="row3">
+              <div>
+                <label class="lbl">SpO2 (%)</label>
+                <input
+                  class="inp"
+                  id="vSpo2"
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="%"
+                />
+              </div>
+              <div>
+                <label class="lbl">RR (/min)</label>
+                <input
+                  class="inp"
+                  id="vRr"
+                  type="number"
+                  min="0"
+                  placeholder="/min"
+                />
+              </div>
+              <div></div>
             </div>
 
             <label class="lbl">Diagnosis</label>
-            <input class="inp" id="vDx" placeholder="Provisional diagnosis" />
+            <input
+              class="inp"
+              id="vDx"
+              placeholder="Provisional diagnosis"
+            />
 
             <label class="lbl">Prescription</label>
-            <textarea class="inp" id="vRx" rows="2" placeholder="Medications…"></textarea>
+            <textarea
+              class="inp"
+              id="vRx"
+              rows="2"
+              placeholder="Medications…"
+            ></textarea>
 
-            <label class="lbl">Follow-up</label>
+            <label class="lbl">Follow-up Date</label>
             <input class="inp" id="vFu" type="date" />
 
-            <label class="toggle"><input type="checkbox" id="vAdmit" /><span class="tgl-track"></span> Admit Patient</label>
-
-            <div id="vAdmitBox" style="display:none">
+            <label class="toggle">
+              <input type="checkbox" id="vAdmit" />
+              <span class="tgl-track"></span> Admit Patient
+            </label>
+            <div id="vAdmitBox" style="display: none">
               <label class="lbl">Ward / Bed</label>
-              <input class="inp" id="vWard" placeholder="Ward-A Bed-3" />
-              <label class="lbl">Reason</label>
-              <input class="inp" id="vAdmReason" placeholder="Admission reason" />
+              <input
+                class="inp"
+                id="vWard"
+                placeholder="Ward-A Bed-3"
+              />
+              <label class="lbl">Admission Reason</label>
+              <input
+                class="inp"
+                id="vAdmReason"
+                placeholder="Reason for admission"
+              />
             </div>
 
-            <button type="submit" class="btn btn-green full">Save Visit</button>
+            <button type="submit" class="btn btn-green full">
+              Save Visit
+            </button>
           </form>
         </div>
       </div>
     </section>
 
-    <!-- ── Search ── -->
+    <!-- Admissions -->
+    <section class="pane" id="pane-admissions">
+      <div class="card glass">
+        <div class="card-hd">Current Admissions</div>
+        <div class="card-bd" id="admList">
+          <p class="empty">No current admissions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search -->
     <section class="pane" id="pane-search">
       <div class="card glass">
         <div class="card-hd">Find Patient</div>
         <div class="card-bd">
-          <input class="inp" id="sInput" placeholder="Search name or phone…" />
+          <input
+            class="inp"
+            id="sInput"
+            placeholder="Search name, phone, or MR#…"
+          />
           <div id="sResults" class="mt12"></div>
         </div>
       </div>
-      <div class="card glass mt12" id="detailCard" style="display:none">
+      <div
+        class="card glass mt12"
+        id="detailCard"
+        style="display: none"
+      >
         <div class="card-bd" id="detailBody"></div>
       </div>
     </section>
-
   </main>
 
   <!-- Toast -->
@@ -175,4 +530,4 @@
 
   <script src="script.js"></script>
 </body>
-</html>
+  </html>
