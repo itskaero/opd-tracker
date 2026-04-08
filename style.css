@@ -1,0 +1,164 @@
+/* ============================================
+   OPD Tracker — Styles
+   Optimized for mobile-first, low-resource use
+   ============================================ */
+
+/* --- Base --- */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: #f4f6f9;
+  padding-bottom: 80px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove focus outlines on touch but keep for keyboard */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --- Navigation Tabs --- */
+#mainTabs .nav-link {
+  font-size: 0.78rem;
+  padding: 0.5rem 0.25rem;
+  white-space: nowrap;
+  color: #555;
+  border-radius: 0;
+}
+
+#mainTabs .nav-link.active {
+  font-weight: 700;
+  color: #0d6efd;
+}
+
+/* --- Cards --- */
+.card {
+  border-radius: 10px;
+}
+
+/* --- Quick Complaint Buttons --- */
+.btn-quick {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.btn-quick.active-quick {
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Per-color active states */
+.btn-outline-danger.active-quick {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-outline-warning.active-quick {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000 !important;
+}
+
+.btn-outline-success.active-quick {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.btn-outline-info.active-quick {
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+  color: #000 !important;
+}
+
+.btn-outline-secondary.active-quick {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-dark.active-quick {
+  background-color: #212529;
+  border-color: #212529;
+}
+
+/* --- Form Tweaks --- */
+.form-control,
+.form-select {
+  font-size: 0.95rem;
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #444;
+}
+
+/* --- List Items --- */
+.list-group-item {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.list-group-item:active {
+  background: #e8f0fe;
+}
+
+/* --- Weight Trend Badges --- */
+.weight-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  background: #e9ecef;
+  min-width: 72px;
+}
+
+.weight-badge .wb-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.weight-badge .wb-date {
+  font-size: 0.65rem;
+  color: #888;
+}
+
+.weight-badge.weight-loss {
+  background: #f8d7da;
+}
+
+.weight-badge.weight-gain {
+  background: #d1e7dd;
+}
+
+/* --- Accordion Visits --- */
+.accordion-button {
+  font-size: 0.88rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.accordion-body {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* --- Alerts List --- */
+.alert-item {
+  font-size: 0.82rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid #ffc107;
+}
+
+.alert-item.alert-danger-custom {
+  border-left-color: #dc3545;
+}
+
+/* --- Responsive helpers --- */
+@media (max-width: 400px) {
+  .btn-quick {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.6rem;
+  }
+}
