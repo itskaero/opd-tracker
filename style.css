@@ -1,164 +1,634 @@
-/* ============================================
-   OPD Tracker — Styles
-   Optimized for mobile-first, low-resource use
-   ============================================ */
+/* ===========================================
+   GitHub-Dark Theme — OPD Tracker
+   Matches GitHub's Primer dark color system
+   =========================================== */
 
-/* --- Base --- */
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
-  background: #f4f6f9;
-  padding-bottom: 80px;
-  -webkit-tap-highlight-color: transparent;
+/* --- Color Tokens --- */
+:root {
+  --gh-canvas: #0d1117;
+  --gh-canvas-subtle: #161b22;
+  --gh-canvas-inset: #010409;
+  --gh-border: #30363d;
+  --gh-border-muted: #21262d;
+  --gh-text: #e6edf3;
+  --gh-text-muted: #8b949e;
+  --gh-text-subtle: #6e7681;
+  --gh-blue: #58a6ff;
+  --gh-green: #3fb950;
+  --gh-orange: #d29922;
+  --gh-red: #f85149;
+  --gh-purple: #bc8cff;
+  --gh-pink: #f778ba;
+  --gh-btn-bg: #21262d;
+  --gh-btn-border: #363b42;
+  --gh-btn-hover: #30363d;
+  --gh-accent-emphasis: #1f6feb;
+  --gh-success-emphasis: #238636;
+  --gh-danger-emphasis: #da3633;
 }
 
-/* Remove focus outlines on touch but keep for keyboard */
+/* --- Base --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    Helvetica, Arial, sans-serif;
+  background: var(--gh-canvas);
+  color: var(--gh-text);
+  padding-bottom: 100px;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 *:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* --- Navigation Tabs --- */
-#mainTabs .nav-link {
-  font-size: 0.78rem;
-  padding: 0.5rem 0.25rem;
-  white-space: nowrap;
-  color: #555;
+/* --- Navbar --- */
+.gh-nav {
+  background: var(--gh-canvas-subtle);
+  border-bottom: 1px solid var(--gh-border);
+  padding: 8px 16px;
+}
+
+.gh-nav .navbar-text {
+  color: var(--gh-text);
+  font-size: 14px;
+}
+
+/* --- Tab Bar --- */
+.gh-tab-bar {
+  background: var(--gh-canvas-subtle);
+  border-bottom: 1px solid var(--gh-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gh-tab-bar .nav-tabs {
+  border: none;
+  flex-wrap: nowrap;
+  padding: 0 12px;
+}
+
+.gh-tab-bar .nav-link {
+  color: var(--gh-text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
   border-radius: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  background: transparent;
 }
 
-#mainTabs .nav-link.active {
-  font-weight: 700;
-  color: #0d6efd;
+.gh-tab-bar .nav-link:hover {
+  color: var(--gh-text);
+  border-bottom-color: var(--gh-border);
 }
 
-/* --- Cards --- */
-.card {
-  border-radius: 10px;
+.gh-tab-bar .nav-link.active {
+  color: var(--gh-text);
+  border-bottom-color: var(--gh-orange);
+  background: transparent;
+  font-weight: 600;
 }
 
-/* --- Quick Complaint Buttons --- */
-.btn-quick {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 20px;
+.tab-icon {
+  font-size: 14px;
+}
+
+/* --- Section Titles --- */
+.gh-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gh-text);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gh-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
   flex-shrink: 0;
 }
 
-.btn-quick.active-quick {
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.bg-gh-blue {
+  background: var(--gh-blue);
+}
+.bg-gh-green {
+  background: var(--gh-green);
+}
+.bg-gh-orange {
+  background: var(--gh-orange);
+}
+.bg-gh-red {
+  background: var(--gh-red);
+}
+.bg-gh-purple {
+  background: var(--gh-purple);
 }
 
-/* Per-color active states */
-.btn-outline-danger.active-quick {
-  background-color: #dc3545;
-  border-color: #dc3545;
+.text-gh-blue {
+  color: var(--gh-blue) !important;
+}
+.text-gh-green {
+  color: var(--gh-green) !important;
+}
+.text-gh-orange {
+  color: var(--gh-orange) !important;
+}
+.text-gh-red {
+  color: var(--gh-red) !important;
+}
+.text-gh-purple {
+  color: var(--gh-purple) !important;
 }
 
-.btn-outline-warning.active-quick {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: #000 !important;
+/* --- Stat Cards --- */
+.gh-stat-card {
+  background: var(--gh-canvas-subtle);
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
 }
 
-.btn-outline-success.active-quick {
-  background-color: #198754;
-  border-color: #198754;
+.gh-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+    monospace;
 }
 
-.btn-outline-info.active-quick {
-  background-color: #0dcaf0;
-  border-color: #0dcaf0;
-  color: #000 !important;
+.gh-stat-label {
+  font-size: 11px;
+  color: var(--gh-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
 }
 
-.btn-outline-secondary.active-quick {
-  background-color: #6c757d;
-  border-color: #6c757d;
+/* --- Lists --- */
+.gh-list {
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.btn-outline-dark.active-quick {
-  background-color: #212529;
-  border-color: #212529;
-}
-
-/* --- Form Tweaks --- */
-.form-control,
-.form-select {
-  font-size: 0.95rem;
-}
-
-.form-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #444;
-}
-
-/* --- List Items --- */
-.list-group-item {
+.gh-list-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gh-border);
   cursor: pointer;
+  transition: background 0.1s;
+  background: var(--gh-canvas-subtle);
+}
+
+.gh-list-item:last-child {
+  border-bottom: none;
+}
+
+.gh-list-item:hover {
+  background: var(--gh-btn-hover);
+}
+
+.gh-list-item:active {
+  background: var(--gh-border-muted);
+}
+
+.gh-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--gh-text-subtle);
+  font-size: 13px;
+  background: var(--gh-canvas-subtle);
+}
+
+/* --- Inputs (GitHub style) --- */
+.gh-input {
+  background: var(--gh-canvas-inset) !important;
+  border: 1px solid var(--gh-border) !important;
+  color: var(--gh-text) !important;
+  border-radius: 6px;
+  font-size: 14px;
+  padding: 6px 12px;
+  transition: border-color 0.15s;
+}
+
+.gh-input:focus {
+  border-color: var(--gh-blue) !important;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3) !important;
+  outline: none;
+}
+
+.gh-input::placeholder {
+  color: var(--gh-text-subtle) !important;
+}
+
+.gh-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gh-text);
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* --- Buttons --- */
+.gh-btn-primary {
+  background: var(--gh-accent-emphasis);
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 6px;
   transition: background 0.15s;
 }
 
-.list-group-item:active {
-  background: #e8f0fe;
+.gh-btn-primary:hover {
+  background: #388bfd;
+  color: #fff;
+}
+
+.gh-btn-green {
+  background: var(--gh-success-emphasis);
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.gh-btn-green:hover {
+  background: #2ea043;
+  color: #fff;
+}
+
+.gh-btn-outline {
+  background: var(--gh-btn-bg);
+  border: 1px solid var(--gh-btn-border);
+  color: var(--gh-text);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.gh-btn-outline:hover {
+  background: var(--gh-btn-hover);
+  border-color: var(--gh-text-muted);
+  color: var(--gh-text);
+}
+
+/* --- Chips (Quick Complaints) --- */
+.gh-chip {
+  background: var(--gh-btn-bg);
+  border: 1px solid var(--gh-btn-border);
+  color: var(--gh-text-muted);
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.gh-chip:hover {
+  background: var(--gh-btn-hover);
+  color: var(--gh-text);
+  border-color: var(--gh-text-muted);
+}
+
+.gh-chip.active {
+  background: var(--gh-accent-emphasis);
+  border-color: var(--gh-accent-emphasis);
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.3);
+}
+
+/* --- Patient Badge (Visit) --- */
+.gh-patient-badge {
+  background: var(--gh-canvas-subtle);
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--gh-text);
+}
+
+/* --- Warning Banner --- */
+.gh-banner-warning {
+  background: rgba(210, 153, 34, 0.1);
+  border: 1px solid rgba(210, 153, 34, 0.4);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--gh-orange);
+  margin-bottom: 12px;
+}
+
+/* --- Admission Box --- */
+.gh-admission-box {
+  background: var(--gh-canvas-inset);
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+/* --- Toggle --- */
+.gh-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gh-toggle .form-check-input {
+  background-color: var(--gh-btn-bg);
+  border-color: var(--gh-border);
+  width: 2.5em;
+  height: 1.25em;
+}
+
+.gh-toggle .form-check-input:checked {
+  background-color: var(--gh-success-emphasis);
+  border-color: var(--gh-success-emphasis);
+}
+
+.gh-toggle label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gh-text);
+}
+
+/* --- Feedback Alerts --- */
+.gh-feedback {
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.gh-feedback.success {
+  background: rgba(63, 185, 80, 0.1);
+  border: 1px solid rgba(63, 185, 80, 0.4);
+  color: var(--gh-green);
+}
+
+.gh-feedback.danger {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.4);
+  color: var(--gh-red);
+}
+
+/* --- Detail Card --- */
+.gh-detail-card {
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gh-detail-header {
+  background: var(--gh-canvas-subtle);
+  border-bottom: 1px solid var(--gh-border);
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.gh-detail-body {
+  background: var(--gh-canvas-inset);
+  padding: 10px 14px;
 }
 
 /* --- Weight Trend Badges --- */
-.weight-badge {
+.gh-weight-badge {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
-  background: #e9ecef;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--gh-canvas-subtle);
+  border: 1px solid var(--gh-border);
   min-width: 72px;
 }
 
-.weight-badge .wb-val {
-  font-size: 1.1rem;
+.gh-weight-badge .wb-val {
+  font-size: 18px;
   font-weight: 700;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  color: var(--gh-text);
 }
 
-.weight-badge .wb-date {
-  font-size: 0.65rem;
-  color: #888;
+.gh-weight-badge .wb-date {
+  font-size: 10px;
+  color: var(--gh-text-subtle);
 }
 
-.weight-badge.weight-loss {
-  background: #f8d7da;
+.gh-weight-badge.loss {
+  border-color: rgba(248, 81, 73, 0.5);
+  background: rgba(248, 81, 73, 0.1);
 }
 
-.weight-badge.weight-gain {
-  background: #d1e7dd;
+.gh-weight-badge.loss .wb-val {
+  color: var(--gh-red);
 }
 
-/* --- Accordion Visits --- */
-.accordion-button {
-  font-size: 0.88rem;
-  padding: 0.5rem 0.75rem;
+.gh-weight-badge.gain {
+  border-color: rgba(63, 185, 80, 0.5);
+  background: rgba(63, 185, 80, 0.1);
 }
 
-.accordion-body {
-  font-size: 0.85rem;
-  padding: 0.5rem 0.75rem;
+.gh-weight-badge.gain .wb-val {
+  color: var(--gh-green);
 }
 
-/* --- Alerts List --- */
-.alert-item {
-  font-size: 0.82rem;
-  padding: 0.4rem 0.6rem;
-  border-left: 3px solid #ffc107;
+.gh-weight-arrow {
+  color: var(--gh-text-subtle);
+  font-size: 18px;
+  align-self: center;
 }
 
-.alert-item.alert-danger-custom {
-  border-left-color: #dc3545;
+/* --- Visit History Cards --- */
+.gh-visit-card {
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
 }
 
-/* --- Responsive helpers --- */
+.gh-visit-header {
+  background: var(--gh-canvas-subtle);
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.gh-visit-header:hover {
+  background: var(--gh-btn-hover);
+}
+
+.gh-visit-header .visit-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gh-visit-body {
+  border-top: 1px solid var(--gh-border);
+  padding: 10px 14px;
+  font-size: 13px;
+  background: var(--gh-canvas-inset);
+  display: none;
+}
+
+.gh-visit-body.open {
+  display: block;
+}
+
+.gh-visit-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.gh-visit-row strong {
+  color: var(--gh-text-muted);
+  min-width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.gh-visit-row span {
+  color: var(--gh-text);
+  font-size: 13px;
+}
+
+/* --- Badge (GitHub style labels) --- */
+.gh-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  line-height: 1.5;
+}
+
+.gh-badge-blue {
+  background: rgba(56, 139, 253, 0.15);
+  color: var(--gh-blue);
+  border: 1px solid rgba(56, 139, 253, 0.4);
+}
+
+.gh-badge-red {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--gh-red);
+  border: 1px solid rgba(248, 81, 73, 0.4);
+}
+
+.gh-badge-green {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--gh-green);
+  border: 1px solid rgba(63, 185, 80, 0.4);
+}
+
+.gh-badge-orange {
+  background: rgba(210, 153, 34, 0.15);
+  color: var(--gh-orange);
+  border: 1px solid rgba(210, 153, 34, 0.4);
+}
+
+.gh-badge-gray {
+  background: rgba(139, 148, 158, 0.15);
+  color: var(--gh-text-muted);
+  border: 1px solid rgba(139, 148, 158, 0.4);
+}
+
+/* --- Alert Items --- */
+.gh-alert-item {
+  padding: 8px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--gh-border);
+  cursor: pointer;
+  background: var(--gh-canvas-subtle);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  transition: background 0.1s;
+}
+
+.gh-alert-item:last-child {
+  border-bottom: none;
+}
+
+.gh-alert-item:hover {
+  background: var(--gh-btn-hover);
+}
+
+.gh-alert-item.warning {
+  border-left: 3px solid var(--gh-orange);
+}
+
+.gh-alert-item.danger {
+  border-left: 3px solid var(--gh-red);
+}
+
+/* --- Admission Separator --- */
+.gh-admission-sep {
+  border-top: 1px dashed var(--gh-border);
+  margin: 8px 0;
+  padding-top: 8px;
+}
+
+/* --- Scrollbar (Webkit) --- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gh-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gh-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gh-text-subtle);
+}
+
+/* --- Responsive --- */
 @media (max-width: 400px) {
-  .btn-quick {
-    font-size: 0.78rem;
-    padding: 0.35rem 0.6rem;
+  .gh-chip {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .gh-stat-value {
+    font-size: 22px;
+  }
+
+  .gh-tab-bar .nav-link {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }
