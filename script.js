@@ -1115,7 +1115,7 @@ function admitFromVisit(vid) {
 }
 window.admitFromVisit = admitFromVisit;
 
-
+function recordVisitMini(v) {
   const a = admission(v.admissionId);
   const ward = a ? `<button class="tag-btn" type="button" onclick="openAdmissionInRecord('${a.id}')">Ward</button>` : "";
   return `<div class="v-card ${state.recordFocusType === "visit" && state.recordFocusId === v.id ? "focus" : ""}"><div class="v-card-top"><span class="v-card-date">${fmtDate(v.date)}</span><span><span class="tag tag-${sevTag(v.severity)}">${esc(v.severity)}</span><span class="tag tag-${v.source === "ER" ? "rd" : "pp"}">${esc(v.source)}</span>${ward}</span></div><div class="v-card-body"><div class="wrap-tags">${v.complaints.map((c) => `<span class="tag tag-bl">${esc(c)}</span>`).join("")}</div>${v.dx ? `<strong>Diagnosis:</strong> ${esc(v.dx)}<br>` : ""}${formatVitals(v) ? `<strong>Vitals:</strong> ${esc(formatVitals(v))}<br>` : ""}${v.source === "ER" ? `<strong>Condition:</strong> ${esc(v.conditionAtPresentation || "—")} · <strong>Outcome:</strong> ${esc(v.erOutcome || "—")}` : `${v.fu ? `<strong>Follow-up:</strong> ${fmtDate(v.fu)}` : ""}`}<div class="btn-row mt12"><button class="btn btn-ghost btn-sm" type="button" onclick="openVisitInRecord('${v.id}')">Open</button></div></div></div>`;
