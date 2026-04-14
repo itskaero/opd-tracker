@@ -1069,7 +1069,53 @@ function formatVitals(v) {
   ].filter(Boolean).join(" · ");
 }
 
-function recordVisitCard(v) {
+function admitFromVisit(vid) {
+  const v = visit(vid);
+  if (!v || security.role !== "editor") return;
+  const existing = activeAdmission(v.pid);
+  if (existing) {
+    // Link to the existing active admission
+    v.admitted = true;
+    v.admissionId = existing.id;
+    existing.visitId = existing.visitId || v.id;
+    existing.source = existing.source || v.source;
+    existing.reason = existing.reason || v.dx || "";
+    existing.diagnosis = existing.diagnosis || v.dx || "";
+    existing.treatment = existing.treatment || v.rx || "";
+    saveDB();
+    openAdmission(existing.id, true);
+    toast(`Visit linked to existing admission ${existing.id}.`, "ok");
+    return;
+  }
+  const a = normAdmission(
+    {
+      id: nextId("admissionCounter", "ADM-"),
+      pid: v.pid,
+      visitId: v.id,
+      openedOn: v.date,
+      status: "Admitted",
+      source: v.source,
+      reason: v.dx || "",
+      history: v.notes || "",
+      allergies: patient(v.pid)?.allergies || "",
+      diagnosis: v.dx || "",
+      treatment: v.rx || "",
+      updatedAt: iso(),
+    },
+    db.admissions.length
+  );
+  db.admissions.push(a);
+  v.admitted = true;
+  v.admissionId = a.id;
+  saveDB();
+  renderAdmissions();
+  renderDash();
+  openAdmission(a.id, true);
+  toast(`Ward admission ${a.id} created from this visit.`, "ok");
+}
+window.admitFromVisit = admitFromVisit;
+
+
   const a = admission(v.admissionId);
   const ward = a ? `<button class="tag-btn" type="button" onclick="openAdmissionInRecord('${a.id}')">Ward</button>` : "";
   return `<div class="v-card ${state.recordFocusType === "visit" && state.recordFocusId === v.id ? "focus" : ""}"><div class="v-card-top"><span class="v-card-date">${fmtDate(v.date)}</span><span><span class="tag tag-${sevTag(v.severity)}">${esc(v.severity)}</span><span class="tag tag-${v.source === "ER" ? "rd" : "pp"}">${esc(v.source)}</span>${ward}</span></div><div class="v-card-body"><div class="wrap-tags">${v.complaints.map((c) => `<span class="tag tag-bl">${esc(c)}</span>`).join("")}</div>${v.dx ? `<strong>Diagnosis:</strong> ${esc(v.dx)}<br>` : ""}${formatVitals(v) ? `<strong>Vitals:</strong> ${esc(formatVitals(v))}<br>` : ""}${v.source === "ER" ? `<strong>Condition:</strong> ${esc(v.conditionAtPresentation || "—")} · <strong>Outcome:</strong> ${esc(v.erOutcome || "—")}` : `${v.fu ? `<strong>Follow-up:</strong> ${fmtDate(v.fu)}` : ""}`}<div class="btn-row mt12"><button class="btn btn-ghost btn-sm" type="button" onclick="openVisitInRecord('${v.id}')">Open</button></div></div></div>`;
@@ -1093,7 +1139,7 @@ function renderTimelineVisitItem(v) {
         <span class="tag tag-${sevTag(v.severity)}">${esc(v.severity)}</span>
         <span class="tag tag-${isER ? "rd" : "pp"}">${esc(v.source)}</span>
         ${hospBadge}
-        ${v.admissionId ? `<button class="tag-btn" type="button" onclick="openAdmissionInRecord('${v.admissionId}')">Ward</button>` : ""}
+        ${v.admissionId ? `<button class="tag-btn" type="button" onclick="openAdmissionInRecord('${v.admissionId}')">Ward</button>` : (security.role === "editor" ? `<button class="tag-btn" type="button" onclick="admitFromVisit('${v.id}')">Send to Ward</button>` : "")}
       </div>
       <div class="tl-content">
         ${v.complaints.length ? `<div class="wrap-tags" style="margin-bottom:5px">${v.complaints.map((c) => `<span class="tag tag-bl">${esc(c)}</span>`).join("")}</div>` : ""}
@@ -1468,6 +1514,7 @@ function openAdmission(id, go = true) {
   if (!a) return;
   if (go) switchTab("admissions");
   fillAdmission(a);
+  applyRole();
 }
 
 function clearAdmissionDetail() {
@@ -1792,6 +1839,7 @@ function bind() {
 
   $("#frmAdmission").addEventListener("submit", (e) => {
     e.preventDefault();
+    if (security.role !== "editor") { toast("Unlock editing to save changes.", "err"); return; }
     const a = admission($("#aId").value);
     if (!a) {
       toast("Admission not found.", "err");
