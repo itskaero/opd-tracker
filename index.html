@@ -6,93 +6,72 @@
     name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no"
   />
-  <title>Pediatric OPD Tracker</title>
+  <title>Pediatric OPD — Clinical Record System</title>
+  <meta name="description" content="Pediatric outpatient and ward record tracker for OPD, ER and admissions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Ambient Background -->
   <div class="ambient" aria-hidden="true">
     <div class="blob b1"></div>
     <div class="blob b2"></div>
   </div>
 
-  <!-- Header -->
   <header class="hdr">
     <div class="hdr-inner">
       <div class="hdr-left">
-        <svg
-          height="26"
-          width="26"
-          viewBox="0 0 16 16"
-          fill="#e6edf3"
-        >
-          <path
-            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53
-            5.47 7.59.4.07.55-.17.55-.38
-            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
-            1.08.58 1.23.82.72 1.21 1.87.87
-            2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
-            0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
-            0 0 .67-.21 2.2.82.64-.18 1.32-.27
-            2-.27.68 0 1.36.09 2 .27 1.53-1.04
-            2.2-.82 2.2-.82.44 1.1.16 1.92.08
-            2.12.51.56.82 1.27.82 2.15 0
-            3.07-1.87 3.75-3.65 3.95.29.25.54.73.54
-            1.48 0 1.07-.01 1.93-.01 2.2 0
-            .21.15.46.55.38A8.013 8.013 0 0016
-            8c0-4.42-3.58-8-8-8z"
-          />
-        </svg>
-        <span class="hdr-title">Pediatric OPD</span>
+        <div class="brand-mark">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="6" y="1" width="4" height="14" rx="1.5" fill="currentColor" opacity="0.9"/>
+            <rect x="1" y="6" width="14" height="4" rx="1.5" fill="currentColor" opacity="0.9"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hdr-title">Pediatric OPD</div>
+          <div class="hdr-sub">OPD · ER · Admissions · Patient Timelines</div>
+        </div>
       </div>
       <div class="hdr-right">
+        <div class="sync-badge" id="syncBadge" title="Cloud sync status">
+          <span class="sync-dot sync-offline" id="syncDot"></span>
+          <span class="sync-lbl" id="syncLbl">Local</span>
+        </div>
+        <span class="role-badge" id="roleLabel">View-only</span>
+        <button class="hdr-btn" id="roleBtn" onclick="toggleRole()" title="Lock or unlock editing">
+          Unlock Editing
+        </button>
+        <button class="hdr-btn" onclick="openHospitalModal()" title="Configure hospital and MR# prefix">Hospital</button>
         <span class="hdr-date" id="headerDate"></span>
-        <button
-          class="hdr-btn"
-          onclick="exportData()"
-          title="Export backup"
-        >
-          ⬇ Export
-        </button>
-        <button
-          class="hdr-btn"
-          onclick="triggerImport()"
-          title="Import backup"
-        >
-          ⬆ Import
-        </button>
-        <input
-          type="file"
-          accept=".json"
-          class="file-hidden"
-          id="importFile"
-          onchange="importData(event)"
-        />
+        <button class="hdr-btn" onclick="exportData()" title="Export JSON backup">Export</button>
+        <button class="hdr-btn" id="importBtn" onclick="triggerImport()" title="Import JSON backup">Import</button>
+        <input type="file" accept=".json" class="file-hidden" id="importFile" onchange="importData(event)" />
       </div>
+    </div>
+    <div class="hosp-bar" id="hospBar" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink:0">
+        <rect x="6" y="1" width="4" height="14" rx="1.5" fill="var(--green)" opacity="0.8"/>
+        <rect x="1" y="6" width="14" height="4" rx="1.5" fill="var(--green)" opacity="0.8"/>
+      </svg>
+      <span class="hosp-bar-name" id="hospBarName"></span>
+      <span class="hosp-bar-code" id="hospBarCode"></span>
+      <button class="hosp-bar-edit" type="button" onclick="openHospitalModal()">Change</button>
     </div>
   </header>
 
-  <!-- Tabs -->
   <nav class="tabs">
     <div class="tabs-inner" id="tabsInner">
-      <button class="tab active" data-tab="dashboard">
-        Dashboard
-      </button>
-      <button class="tab" data-tab="register">
-        Register
-      </button>
-      <button class="tab" data-tab="visit">Visit</button>
-      <button class="tab" data-tab="admissions">
-        Admitted
-      </button>
-      <button class="tab" data-tab="search">Search</button>
+      <button class="tab active" data-tab="dashboard">Daily Desk</button>
+      <button class="tab" data-tab="register">New Patient</button>
+      <button class="tab" data-tab="visit">New Visit</button>
+      <button class="tab" data-tab="admissions">Audit</button>
+      <button class="tab" data-tab="search">Records</button>
       <span class="tab-ink" id="tabInk"></span>
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="content">
-    <!-- Dashboard -->
     <section class="pane active" id="pane-dashboard">
       <div class="stat-row">
         <div class="stat glass">
@@ -105,7 +84,7 @@
         </div>
         <div class="stat glass">
           <span class="stat-n" id="stAdm">0</span>
-          <span class="stat-l">Admitted</span>
+          <span class="stat-l">Active Adm</span>
         </div>
         <div class="stat glass">
           <span class="stat-n" id="stVis">0</span>
@@ -113,77 +92,162 @@
         </div>
       </div>
 
+      <div class="btn-row desk-actions">
+        <button class="btn btn-green" type="button" onclick="switchTab('register')">
+          New Patient
+        </button>
+        <button class="btn btn-ghost" type="button" onclick="switchTab('visit')">
+          New Visit
+        </button>
+      </div>
+
+      <div class="audit-strip" id="deskFlowStrip"></div>
+
       <div class="card glass">
-        <div class="card-hd">Today's Visits</div>
+        <div class="card-hd">Today's Flow</div>
         <div class="card-bd" id="dashToday">
           <p class="empty">No visits today.</p>
         </div>
       </div>
 
-      <div
-        class="card glass"
-        id="alertCard"
-        style="display: none"
-      >
-        <div class="card-hd">⚠ Alerts</div>
-        <div class="card-bd" id="dashAlerts"></div>
+      <div class="dash-grid">
+        <div class="card glass">
+          <div class="card-hd">Admission Board</div>
+          <div class="card-bd" id="dashAdmissions">
+            <p class="empty">No active admissions.</p>
+          </div>
+        </div>
+
+        <div class="card glass" id="alertCard" style="display: none">
+          <div class="card-hd">Clinical Alerts</div>
+          <div class="card-bd" id="dashAlerts"></div>
+        </div>
       </div>
     </section>
 
-    <!-- Register -->
     <section class="pane" id="pane-register">
       <div class="card glass">
-        <div class="card-hd">Register New Patient</div>
+        <div class="card-hd">
+          <span>Register New Patient</span>
+          <span class="pill-soft">Next MR#: <strong id="regNextUhid">MR-000001</strong></span>
+        </div>
         <div class="card-bd">
+          <div class="quick-note">
+            First-time patients come here. Returning patients should go straight to New Visit or Records. MR# is generated automatically, and similar names are shown below before saving.
+          </div>
+
+          <div class="card-subtle" id="rDupesCard" style="display: none">
+            <div class="subtle-title">Possible Existing Patients</div>
+            <div id="rDupes"></div>
+          </div>
+
           <form id="frmReg" autocomplete="off">
-            <label class="lbl">
-              Name <span class="req">*</span>
-            </label>
-            <input
-              class="inp"
-              id="rName"
-              required
-              placeholder="Full name"
-            />
-
-            <div class="row2">
-              <div>
-                <label class="lbl">Date of Birth</label>
-                <input class="inp" id="rDob" type="date" />
-              </div>
-              <div>
-                <label class="lbl">
-                  OR Age <span class="req">*</span>
-                </label>
-                <div class="row2">
-                  <input
-                    class="inp"
-                    id="rAge"
-                    type="number"
-                    min="0"
-                    max="18"
-                    placeholder="Age"
-                  />
-                  <select class="inp" id="rAgeUnit">
-                    <option>Years</option>
-                    <option>Months</option>
-                    <option>Days</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
             <div class="row3">
+              <div class="row3-span2">
+                <label class="lbl">Patient Name <span class="req">*</span></label>
+                <input
+                  class="inp"
+                  id="rName"
+                  required
+                  placeholder="Child full name"
+                />
+              </div>
               <div>
-                <label class="lbl">
-                  Gender <span class="req">*</span>
-                </label>
+                <label class="lbl">Gender <span class="req">*</span></label>
                 <select class="inp" id="rGender" required>
                   <option value="">Select</option>
                   <option>Male</option>
                   <option>Female</option>
                 </select>
               </div>
+            </div>
+
+            <div class="row3">
+              <div>
+                <label class="lbl">Date of Birth</label>
+                <input class="inp" id="rDob" type="date" />
+              </div>
+              <div>
+                <label class="lbl">Age <span class="req">*</span></label>
+                <input
+                  class="inp"
+                  id="rAge"
+                  type="number"
+                  min="0"
+                  placeholder="Age"
+                />
+              </div>
+              <div>
+                <label class="lbl">Unit</label>
+                <select class="inp" id="rAgeUnit">
+                  <option>Years</option>
+                  <option>Months</option>
+                  <option>Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label class="lbl">Area / Mohalla <span class="req">*</span></label>
+                <input
+                  class="inp"
+                  id="rArea"
+                  required
+                  placeholder="Area / village / town"
+                />
+              </div>
+              <div>
+                <label class="lbl">Guardian</label>
+                <input
+                  class="inp"
+                  id="rGuardian"
+                  placeholder="Father / mother / attendant"
+                />
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label class="lbl">Phone</label>
+                <input
+                  class="inp"
+                  id="rPhone"
+                  type="tel"
+                  placeholder="Optional"
+                />
+              </div>
+              <div>
+                <label class="lbl">Address / Landmark</label>
+                <input
+                  class="inp"
+                  id="rAddr"
+                  placeholder="House / street / landmark"
+                />
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label class="lbl">Emergency Contact</label>
+                <input
+                  class="inp"
+                  id="rEmName"
+                  placeholder="Contact name"
+                />
+              </div>
+              <div>
+                <label class="lbl">Emergency Phone</label>
+                <input
+                  class="inp"
+                  id="rEmPhone"
+                  type="tel"
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+
+            <div class="row3">
               <div>
                 <label class="lbl">Weight (kg)</label>
                 <input
@@ -192,7 +256,16 @@
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="kg"
+                />
+              </div>
+              <div>
+                <label class="lbl">Height (cm)</label>
+                <input
+                  class="inp"
+                  id="rHeight"
+                  type="number"
+                  step="0.1"
+                  min="0"
                 />
               </div>
               <div>
@@ -211,85 +284,55 @@
               </div>
             </div>
 
-            <label class="lbl">
-              Phone <small>(optional)</small>
-            </label>
-            <input
-              class="inp"
-              id="rPhone"
-              type="tel"
-              placeholder="03001234567"
-            />
-
-            <label class="lbl">
-              Emergency Contact <small>(optional)</small>
-            </label>
-            <div class="row2">
-              <input
-                class="inp"
-                id="rEmName"
-                placeholder="Contact name"
-              />
-              <input
-                class="inp"
-                id="rEmPhone"
-                type="tel"
-                placeholder="Phone number"
-              />
-            </div>
-
-            <label class="lbl">Guardian</label>
-            <input
-              class="inp"
-              id="rGuardian"
-              placeholder="Father / Mother name"
-            />
-
-            <label class="lbl">Address</label>
-            <input
-              class="inp"
-              id="rAddr"
-              placeholder="City / Area"
-            />
-
-            <label class="lbl">
-              Allergies <small>(important)</small>
-            </label>
+            <label class="lbl">Allergies</label>
             <input
               class="inp"
               id="rAllergy"
-              placeholder="e.g. Penicillin, Eggs…"
+              placeholder="Drug / food / no known allergies"
             />
 
-            <button type="submit" class="btn btn-green full">
-              Register Patient
-            </button>
+            <label class="lbl">Registration Notes</label>
+            <textarea
+              class="inp"
+              id="rNote"
+              rows="2"
+              placeholder="Anything important at registration"
+            ></textarea>
+
+            <div class="btn-row">
+              <button type="submit" class="btn btn-green" value="stay">
+                Register Patient
+              </button>
+              <button
+                type="submit"
+                class="btn btn-ghost"
+                value="visit"
+              >
+                Register &amp; New Visit
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </section>
 
-    <!-- Visit -->
     <section class="pane" id="pane-visit">
       <div class="card glass">
-        <div class="card-hd">New OPD Visit</div>
+        <div class="card-hd">New Encounter</div>
         <div class="card-bd">
           <form id="frmVisit" autocomplete="off">
-            <label class="lbl">
-              Patient <span class="req">*</span>
-            </label>
+            <div class="quick-note" id="visitGuide">
+              Select a patient, then choose whether this is a routine/follow-up OPD encounter or an emergency ER encounter.
+            </div>
+            <label class="lbl">Patient <span class="req">*</span></label>
             <input
               class="inp"
               id="vSearch"
-              placeholder="Search name, phone, or MR#…"
+              placeholder="Search name, MR#, guardian, area, phone..."
             />
             <div class="dd" id="vDD"></div>
             <input type="hidden" id="vPid" />
-            <div
-              class="badge"
-              id="vBadge"
-              style="display: none"
-            ></div>
+            <div class="badge" id="vBadge" style="display: none"></div>
             <div
               class="allergy-warn"
               id="vAllergyWarn"
@@ -298,95 +341,54 @@
 
             <label class="lbl">Severity</label>
             <div class="sev-row">
-              <button type="button" class="sev" data-s="Routine">
-                Routine
-              </button>
-              <button type="button" class="sev" data-s="Urgent">
-                Urgent
-              </button>
-              <button
-                type="button"
-                class="sev"
-                data-s="Emergency"
-              >
-                Emergency
-              </button>
-              <button
-                type="button"
-                class="sev"
-                data-s="Follow-up"
-              >
-                Follow-up
-              </button>
+              <button type="button" class="sev on-routine" data-s="Routine">Routine</button>
+              <button type="button" class="sev" data-s="Follow-up">Follow-up</button>
+              <button type="button" class="sev" data-s="Emergency">Emergency</button>
             </div>
             <input type="hidden" id="vSev" value="Routine" />
+            <input type="hidden" id="vSource" value="OPD" />
+            <div class="source-note" id="vSourceNote">Encounter source: OPD</div>
 
-            <label class="lbl">
-              Complaints <span class="req">*</span>
-            </label>
+            <label class="lbl">Complaints <span class="req">*</span></label>
             <div class="chips" id="vChips">
-              <button type="button" class="chip" data-c="Fever">
-                🌡 Fever
-              </button>
-              <button type="button" class="chip" data-c="Cough">
-                💨 Cough
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Diarrhea"
-              >
-                🚽 Diarrhea
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Vomiting"
-              >
-                🤮 Vomiting
-              </button>
-              <button type="button" class="chip" data-c="Rash">
-                🔴 Rash
-              </button>
-              <button type="button" class="chip" data-c="Pain">
-                😣 Pain
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Breathing Difficulty"
-              >
-                🫁 Breathing
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Seizure"
-              >
-                ⚡ Seizure
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Ear Pain"
-              >
-                👂 Ear
-              </button>
-              <button
-                type="button"
-                class="chip"
-                data-c="Sore Throat"
-              >
-                🗣 Throat
-              </button>
+              <button type="button" class="chip" data-c="Fever">Fever</button>
+              <button type="button" class="chip" data-c="Cough">Cough</button>
+              <button type="button" class="chip" data-c="Diarrhea">Diarrhea</button>
+              <button type="button" class="chip" data-c="Vomiting">Vomiting</button>
+              <button type="button" class="chip" data-c="Rash">Rash</button>
+              <button type="button" class="chip" data-c="Pain">Pain</button>
+              <button type="button" class="chip" data-c="Breathing Difficulty">Breathing</button>
+              <button type="button" class="chip" data-c="Seizure">Seizure</button>
+              <button type="button" class="chip" data-c="Poor Feeding">Poor Feeding</button>
+              <button type="button" class="chip" data-c="Wheeze">Wheeze</button>
             </div>
 
-            <label class="lbl">Notes</label>
+            <div class="row2">
+              <div>
+                <label class="lbl">Attendant Name</label>
+                <input
+                  class="inp"
+                  id="vAttendant"
+                  placeholder="Who brought the child today?"
+                />
+              </div>
+              <div>
+                <label class="lbl">Attendant Phone</label>
+                <input
+                  class="inp"
+                  id="vAttendantPhone"
+                  type="tel"
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+
+            <label class="lbl">Encounter Notes</label>
             <textarea
               class="inp"
               id="vNotes"
               rows="2"
-              placeholder="Additional details…"
+              placeholder="HPI / important context"
             ></textarea>
 
             <div class="row3">
@@ -402,86 +404,191 @@
                 />
               </div>
               <div>
-                <label class="lbl">Temp (°F)</label>
+                <label class="lbl">Height (cm)</label>
+                <input
+                  class="inp"
+                  id="vHt"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="cm"
+                />
+              </div>
+              <div>
+                <label class="lbl">MUAC (cm)</label>
+                <input
+                  class="inp"
+                  id="vMuac"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="cm"
+                />
+              </div>
+            </div>
+
+            <div class="row4">
+              <div>
+                <label class="lbl">Temp (F)</label>
                 <input
                   class="inp"
                   id="vTemp"
                   type="number"
                   step="0.1"
-                  placeholder="°F"
                 />
               </div>
               <div>
-                <label class="lbl">HR (bpm)</label>
-                <input
-                  class="inp"
-                  id="vHr"
-                  type="number"
-                  min="0"
-                  placeholder="bpm"
-                />
+                <label class="lbl">HR</label>
+                <input class="inp" id="vHr" type="number" min="0" />
               </div>
-            </div>
-            <div class="row3">
               <div>
-                <label class="lbl">SpO2 (%)</label>
+                <label class="lbl">SpO2</label>
                 <input
                   class="inp"
                   id="vSpo2"
                   type="number"
                   min="0"
                   max="100"
-                  placeholder="%"
                 />
               </div>
               <div>
-                <label class="lbl">RR (/min)</label>
-                <input
-                  class="inp"
-                  id="vRr"
-                  type="number"
-                  min="0"
-                  placeholder="/min"
-                />
+                <label class="lbl">RR</label>
+                <input class="inp" id="vRr" type="number" min="0" />
               </div>
-              <div></div>
             </div>
 
-            <label class="lbl">Diagnosis</label>
-            <input
-              class="inp"
-              id="vDx"
-              placeholder="Provisional diagnosis"
-            />
+            <div id="vOpdSection">
+              <label class="lbl">Focused OPD Examination</label>
+              <textarea
+                class="inp"
+                id="vOpdExam"
+                rows="3"
+                placeholder="Relevant findings for this OPD visit"
+              ></textarea>
 
-            <label class="lbl">Prescription</label>
-            <textarea
-              class="inp"
-              id="vRx"
-              rows="2"
-              placeholder="Medications…"
-            ></textarea>
+              <label class="lbl">Diagnosis</label>
+              <input
+                class="inp"
+                id="vDx"
+                placeholder="Latest / provisional diagnosis"
+              />
 
-            <label class="lbl">Follow-up Date</label>
-            <input class="inp" id="vFu" type="date" />
+              <label class="lbl">Treatment Advised</label>
+              <textarea
+                class="inp"
+                id="vRx"
+                rows="3"
+                placeholder="Medicines, advice, investigations"
+              ></textarea>
+
+              <div class="row2">
+                <div>
+                  <label class="lbl">Follow-up Date</label>
+                  <input class="inp" id="vFu" type="date" />
+                </div>
+                <div>
+                  <label class="lbl">Linked Admission Consultant</label>
+                  <input
+                    class="inp"
+                    id="vConsultant"
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div id="vErSection" style="display: none">
+              <div class="card-subtle">
+                <div class="subtle-title">ER Encounter</div>
+                <div class="row2">
+                  <div>
+                    <label class="lbl">Condition at Presentation</label>
+                    <select class="inp" id="vCondition">
+                      <option value="">Select</option>
+                      <option>Stable</option>
+                      <option>Serious</option>
+                      <option>Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="lbl">ER Outcome</label>
+                    <select class="inp" id="vErOutcome">
+                      <option value="">Select</option>
+                      <option>Improved</option>
+                      <option>Static</option>
+                      <option>Deteriorated</option>
+                    </select>
+                  </div>
+                </div>
+
+                <label class="lbl">Provisional Examination</label>
+                <textarea
+                  class="inp"
+                  id="vErExam"
+                  rows="3"
+                  placeholder="Complaint-focused ER examination"
+                ></textarea>
+
+                <label class="lbl">Other Systems Note</label>
+                <textarea
+                  class="inp"
+                  id="vErSystems"
+                  rows="3"
+                  placeholder="Relevant findings in other systems"
+                ></textarea>
+
+                <label class="lbl">ER Management</label>
+                <textarea
+                  class="inp"
+                  id="vErManagement"
+                  rows="3"
+                  placeholder="Immediate treatment, oxygen, nebulization, fluids, procedures"
+                ></textarea>
+
+                <label class="lbl">Provisional Diagnosis</label>
+                <input
+                  class="inp"
+                  id="vDxEr"
+                  placeholder="ER provisional diagnosis"
+                />
+              </div>
+            </div>
 
             <label class="toggle">
               <input type="checkbox" id="vAdmit" />
-              <span class="tgl-track"></span> Admit Patient
+              <span class="tgl-track"></span>
+              <span id="vAdmitLabel">Admit from OPD</span>
             </label>
+
             <div id="vAdmitBox" style="display: none">
-              <label class="lbl">Ward / Bed</label>
-              <input
+              <div class="admit-note">
+                Saving this visit will create or update a linked admission record that opens on the Admissions page.
+              </div>
+              <div class="row2">
+                <div>
+                  <label class="lbl">Ward / Bed</label>
+                  <input
+                    class="inp"
+                    id="vWard"
+                    placeholder="Ward A / Bed 3"
+                  />
+                </div>
+                <div>
+                  <label class="lbl">Admission Reason</label>
+                  <input
+                    class="inp"
+                    id="vAdmReason"
+                    placeholder="Why admitting from OPD?"
+                  />
+                </div>
+              </div>
+              <label class="lbl">Initial Admission History</label>
+              <textarea
                 class="inp"
-                id="vWard"
-                placeholder="Ward-A Bed-3"
-              />
-              <label class="lbl">Admission Reason</label>
-              <input
-                class="inp"
-                id="vAdmReason"
-                placeholder="Reason for admission"
-              />
+                id="vAdmHistory"
+                rows="2"
+                placeholder="Short summary before detailed admission note"
+              ></textarea>
             </div>
 
             <button type="submit" class="btn btn-green full">
@@ -492,42 +599,315 @@
       </div>
     </section>
 
-    <!-- Admissions -->
     <section class="pane" id="pane-admissions">
       <div class="card glass">
-        <div class="card-hd">Current Admissions</div>
-        <div class="card-bd" id="admList">
-          <p class="empty">No current admissions.</p>
+        <div class="card-hd">Audit &amp; Cases</div>
+        <div class="card-bd">
+          <div class="admissions-hero">
+            <div>
+              <div class="hero-kicker">Monthly Audit View</div>
+              <div class="hero-title" id="admMonthLabel">This Month</div>
+              <div class="hero-sub" id="admMonthSub">
+                Trends for flow, diagnoses, return visits, and case load.
+              </div>
+            </div>
+            <div class="month-nav">
+              <button class="btn btn-ghost btn-sm" type="button" id="admPrevMonth">
+                Previous
+              </button>
+              <input class="inp month-input" id="admMonth" type="month" />
+              <button class="btn btn-ghost btn-sm" type="button" id="admNextMonth">
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div class="audit-strip" id="admAuditStrip"></div>
+
+          <div class="audit-grid">
+            <div class="audit-card audit-card-wide">
+              <div class="audit-card-hd">Six-Month Case Trend</div>
+              <div id="admTrendChart"></div>
+              <div class="hero-sub mt12" id="admTrendCaption"></div>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-hd">Flow Mix</div>
+              <div class="audit-bars" id="admFlowBars"></div>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-hd">Top Diagnoses</div>
+              <div class="audit-list" id="admDxList"></div>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-hd">Ward / Bed Load</div>
+              <div class="audit-list" id="admWardList"></div>
+            </div>
+            <div class="audit-card">
+              <div class="audit-card-hd">Frequent / Returning Patients</div>
+              <div class="audit-list" id="admReturnList"></div>
+            </div>
+          </div>
+
+          <div class="board-head mt12">
+            <div class="board-title">Case Board</div>
+            <div class="board-sub">Browse all monthly cases. Clicking a case opens the patient in Records.</div>
+          </div>
+          <div class="row2">
+            <div>
+              <label class="lbl">Disease Filter</label>
+              <select class="inp" id="admDiseaseFilter">
+                <option value="">All diagnoses</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Age Filter</label>
+              <select class="inp" id="admAgeFilter">
+                <option value="">All ages</option>
+                <option>Neonate</option>
+                <option>Infant</option>
+                <option>1-5 Years</option>
+                <option>5+ Years</option>
+              </select>
+            </div>
+          </div>
+          <input
+            class="inp"
+            id="admSearch"
+            placeholder="Search MR#, patient, diagnosis, source, ward..."
+          />
+          <div class="segment-row">
+            <button class="seg active" data-adm-filter="all">All Cases</button>
+            <button class="seg" data-adm-filter="active">Ward Active</button>
+            <button class="seg" data-adm-filter="discharged">Ward Discharged</button>
+          </div>
+          <div id="admList" class="mt12">
+            <p class="empty">No current admissions.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card glass" id="admDetailCard" style="display: none">
+        <div class="card-hd">
+          <span id="admTitle">Admission Detail</span>
+          <div class="head-actions">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="openAdmissionPatient()">
+              Open Patient
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="clearAdmissionDetail()">
+              Close
+            </button>
+          </div>
+        </div>
+        <div class="card-bd">
+          <form id="frmAdmission" autocomplete="off">
+            <input type="hidden" id="aId" />
+
+            <div class="summary-strip" id="admSummary"></div>
+
+            <div class="row3">
+              <div>
+                <label class="lbl">Status</label>
+                <select class="inp" id="aStatus">
+                  <option>Admitted</option>
+                  <option>Discharged</option>
+                </select>
+              </div>
+              <div>
+                <label class="lbl">Admitted On</label>
+                <input class="inp" id="aOpenedOn" type="date" />
+              </div>
+              <div>
+                <label class="lbl">Discharge Date</label>
+                <input class="inp" id="aDischargeDate" type="date" />
+              </div>
+            </div>
+
+            <div class="row3">
+              <div>
+                <label class="lbl">Source</label>
+                <select class="inp" id="aSource">
+                  <option>OPD</option>
+                  <option>ER</option>
+                </select>
+              </div>
+              <div>
+                <label class="lbl">Ward / Bed</label>
+                <input class="inp" id="aWardBed" placeholder="Ward / bed" />
+              </div>
+              <div>
+                <label class="lbl">Consultant / Team</label>
+                <input class="inp" id="aConsultant" placeholder="Consultant / team" />
+              </div>
+            </div>
+
+            <label class="lbl">Admission Reason</label>
+            <textarea class="inp" id="aReason" rows="2" placeholder="Reason for admission"></textarea>
+
+            <label class="lbl">Admission History</label>
+            <textarea class="inp" id="aHistory" rows="4" placeholder="History of presenting illness, relevant past history, birth / immunization / feeding if needed"></textarea>
+
+            <div class="row2">
+              <div>
+                <label class="lbl">Past History / Co-morbidities</label>
+                <textarea class="inp" id="aPastHistory" rows="3" placeholder="Previous admissions, chronic illness, relevant background"></textarea>
+              </div>
+              <div>
+                <label class="lbl">Family History</label>
+                <textarea class="inp" id="aFamilyHistory" rows="3" placeholder="Relevant family history"></textarea>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div>
+                <label class="lbl">Allergies</label>
+                <textarea class="inp" id="aAllergies" rows="3" placeholder="Drug / food / environmental allergies"></textarea>
+              </div>
+              <div>
+                <label class="lbl">Anthropometry Summary</label>
+                <textarea class="inp" id="aAnthropometry" rows="3" placeholder="Nutritional status, growth concerns, anthropometric comments"></textarea>
+              </div>
+            </div>
+
+            <label class="lbl">Diagnosis</label>
+            <textarea class="inp" id="aDiagnosis" rows="3" placeholder="Working / final diagnosis"></textarea>
+
+            <label class="lbl">Treatment / Orders</label>
+            <textarea class="inp" id="aTreatment" rows="4" placeholder="Fluids, medicines, oxygen, procedures, monitoring"></textarea>
+
+            <label class="lbl">Labs / Imaging</label>
+            <textarea class="inp" id="aLabs" rows="4" placeholder="Investigations, results, pending items"></textarea>
+
+            <label class="lbl">Procedures / Interventions</label>
+            <textarea class="inp" id="aProcedures" rows="3" placeholder="Nebulization, IV line, lumbar puncture, oxygen, transfusion"></textarea>
+
+            <label class="lbl">Management Timeline</label>
+            <textarea class="inp" id="aManagementTimeline" rows="3" placeholder="Day-wise or event-wise management updates"></textarea>
+
+            <div class="exam-grid">
+              <div>
+                <label class="lbl">General Examination</label>
+                <textarea class="inp" id="aExamGeneral" rows="3" placeholder="General appearance, pallor, cyanosis, hydration, edema"></textarea>
+              </div>
+              <div>
+                <label class="lbl">Respiratory</label>
+                <textarea class="inp" id="aExamResp" rows="3" placeholder="Air entry, wheeze, creps, distress"></textarea>
+              </div>
+              <div>
+                <label class="lbl">CVS</label>
+                <textarea class="inp" id="aExamCvs" rows="3" placeholder="Heart sounds, murmur, pulses, perfusion"></textarea>
+              </div>
+              <div>
+                <label class="lbl">CNS</label>
+                <textarea class="inp" id="aExamCns" rows="3" placeholder="Sensorium, tone, seizures, focal signs"></textarea>
+              </div>
+              <div>
+                <label class="lbl">GIT</label>
+                <textarea class="inp" id="aExamGit" rows="3" placeholder="Abdomen, liver, spleen, bowel sounds, tenderness"></textarea>
+              </div>
+            </div>
+
+            <label class="lbl">Special Notes</label>
+            <textarea class="inp" id="aSpecialNotes" rows="3" placeholder="Doctor special notes, red flags, counseling, consultant updates"></textarea>
+
+            <label class="lbl">Outcome / Disposition</label>
+            <textarea class="inp" id="aOutcome" rows="3" placeholder="Improved, referred, discharged on treatment, left against advice"></textarea>
+
+            <div class="btn-row">
+              <button type="submit" class="btn btn-green">Save Admission</button>
+              <button type="button" class="btn btn-ghost" onclick="markAdmissionDischarged()">
+                Mark Discharged
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
 
-    <!-- Search -->
     <section class="pane" id="pane-search">
       <div class="card glass">
-        <div class="card-hd">Find Patient</div>
+        <div class="card-hd">Patient Records</div>
         <div class="card-bd">
           <input
             class="inp"
             id="sInput"
-            placeholder="Search name, phone, or MR#…"
+            placeholder="Search name, MR#, guardian, area, phone..."
           />
-          <div id="sResults" class="mt12"></div>
+          <div id="sResults" class="mt12">
+            <p class="empty">Type to search.</p>
+          </div>
         </div>
       </div>
-      <div
-        class="card glass mt12"
-        id="detailCard"
-        style="display: none"
-      >
+
+      <div class="card glass mt12" id="detailCard" style="display: none">
         <div class="card-bd" id="detailBody"></div>
       </div>
     </section>
   </main>
 
-  <!-- Toast -->
+  <!-- PIN Modal -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal" id="pinModalCard">
+      <div class="modal-hd" id="pinModalTitle">Security</div>
+      <div class="modal-bd">
+        <p class="modal-msg" id="pinModalMsg"></p>
+        <input class="inp pin-inp" id="pinInput" type="password" maxlength="6"
+               inputmode="numeric" placeholder="● ● ● ●" autocomplete="off" />
+        <div class="pin-err" id="pinErr"></div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-ghost" type="button" onclick="pinModalCancel()">Cancel</button>
+        <button class="btn btn-green" type="button" id="pinModalOk" onclick="pinModalConfirm()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hospital Setup Modal -->
+  <div class="modal-overlay" id="hospitalModal">
+    <div class="modal">
+      <div class="modal-hd">Hospital Setup</div>
+      <div class="modal-bd">
+        <p class="modal-msg">Configure this facility to generate location-specific MR numbers and link all records to a hospital database.</p>
+        <div class="setup-mode-row">
+          <button class="seg active" id="setupModeAuto" onclick="hospSetupMode('auto')">Auto-Detect</button>
+          <button class="seg" id="setupModeManual" onclick="hospSetupMode('manual')">Manual Entry</button>
+        </div>
+        <div id="setupAutoPane">
+          <p class="modal-hint">Allow location access, then tap below to detect your hospital from GPS coordinates using OpenStreetMap.</p>
+          <button class="btn btn-accent full" type="button" onclick="hospital.detectAndShow()">&#x1F4CD;&nbsp; Detect My Location</button>
+          <div class="detected-box" id="detectedBox" style="display:none">
+            <div class="detected-name" id="detectedHospName"></div>
+            <div class="detected-meta" id="detectedHospMeta"></div>
+            <label class="lbl">Short Code for MR# <span class="req">*</span></label>
+            <input class="inp" id="detectedHospCode" maxlength="5" placeholder="e.g. DHQ" />
+          </div>
+        </div>
+        <div id="setupManualPane" style="display:none">
+          <label class="lbl">Hospital Full Name <span class="req">*</span></label>
+          <input class="inp" id="hospNameInput" placeholder="e.g. District Headquarters Hospital" />
+          <label class="lbl">Short Code for MR# <span class="req">*</span></label>
+          <input class="inp" id="hospCodeInput" maxlength="5" placeholder="e.g. DHQ" />
+          <label class="lbl">City / Location</label>
+          <input class="inp" id="hospCityInput" placeholder="e.g. Bahawalpur" />
+        </div>
+        <div class="pin-err" id="hospErr"></div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-ghost" type="button" onclick="closeHospitalModal()">Skip for now</button>
+        <button class="btn btn-green" type="button" onclick="hospital.saveFromModal()">Save Hospital</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK (compat build — works with regular script tags) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- App configuration — edit firebase-config.js to connect your database -->
+  <script src="firebase-config.js"></script>
+
+  <!-- Main application -->
   <script src="script.js"></script>
 </body>
-  </html>
+</html>

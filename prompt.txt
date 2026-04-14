@@ -1,0 +1,5 @@
+So recently I made an OPD tracker, where we register the patient first and then add their visits. Now problem, there can be same patients with same name and from same area. Also patient attendants can be different at different visists so even phone number wont work properly. Improve registration as theres too many patient coming, make it easier for doctor to save it ina jiffy  (Unique Pateint Indentifier). Also allow admissions done from OPD to have a seperate page with detailed history, you know what entails admission history, allergies, treatment, labs, diagnosis, outcome. Like main patient page with opd visits, and opd visits which are admitted will go to respective admission.
+
+Admission will have history, treatment, labs doctor special notes. Examination findings for respiratory, cvs, cns, general. You can improvise on the page for intuitivity / like making it easy for end user. If possible make it have a anthropometric chart trent. on main patient page.
+
+Make it linked to main patient page you get the gist?
