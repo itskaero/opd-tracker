@@ -23,7 +23,16 @@ const state = {
   recordFocusType: "",
   recordFocusId: "",
 };
-const security = { pin: localStorage.getItem("opd_editor_pin") || "", role: "viewer" };
+const security = { role: "viewer" };
+// PIN is scoped per hospital — helpers read/write from the correct key
+function getEditorPin() {
+  return localStorage.getItem(`opd_pin_${hospital.code() || "default"}`) || "";
+}
+function setEditorPin(v) {
+  const key = `opd_pin_${hospital.code() || "default"}`;
+  if (v) localStorage.setItem(key, v);
+  else localStorage.removeItem(key);
+}
 
 function iso(d = new Date()) {
   const y = d.getFullYear();
@@ -458,6 +467,8 @@ function normVisit(v, i) {
     admReason: text(v.admReason),
     admissionId: text(v.admissionId),
     consultant: text(v.consultant),
+    hospitalId: v.hospitalId || hospital.code() || "",
+    hospitalName: v.hospitalName || hospital.get()?.name || "",
   };
 }
 
@@ -494,6 +505,8 @@ function normAdmission(a, i) {
     },
     createdAt: a.createdAt || iso(),
     updatedAt: a.updatedAt || iso(),
+    hospitalId: a.hospitalId || hospital.code() || "",
+    hospitalName: a.hospitalName || hospital.get()?.name || "",
   };
 }
 
@@ -792,6 +805,9 @@ function applyRole() {
     el.disabled = viewer;
   });
 
+  // Re-lock historically sealed fields — even editors cannot alter past encounter records
+  document.querySelectorAll("[data-hist-locked]").forEach((el) => { el.disabled = true; });
+
   if (viewer && ["pane-register", "pane-visit"].includes(document.querySelector(".pane.active")?.id)) {
     switchTab("search");
   }
@@ -805,10 +821,11 @@ async function toggleRole() {
     return;
   }
 
-  if (!security.pin) {
+  const hospName = hospital.get()?.name || "this hospital";
+  if (!getEditorPin()) {
     const first = await showPinModal(
-      "Set Editor PIN",
-      "Create a PIN (4\u20136 digits) to protect editing access on this device.",
+      "Set Hospital PIN",
+      `Create a PIN (4\u20136 digits) for ${hospName}. Only doctors at this hospital will be able to unlock editing.`,
       "Set PIN"
     );
     if (first === null) return;
@@ -820,21 +837,20 @@ async function toggleRole() {
     );
     if (second === null) return;
     if (first !== second) { toast("PINs did not match. Try again.", "err"); return; }
-    security.pin = first;
-    localStorage.setItem("opd_editor_pin", first);
+    setEditorPin(first);
     security.role = "editor";
     applyRole();
-    toast("PIN set. Editing unlocked.", "ok");
+    toast(`PIN set for ${hospName}. Editing unlocked.`, "ok");
     return;
   }
 
   const entered = await showPinModal(
     "Unlock Editing",
-    "Enter your editor PIN to enable editing mode.",
+    `Enter the PIN for ${hospName} to enable editing mode.`,
     "Unlock"
   );
   if (entered === null) return;
-  if (entered !== security.pin) {
+  if (entered !== getEditorPin()) {
     toast("Incorrect PIN.", "err");
     return;
   }
@@ -931,6 +947,62 @@ function recordAdmissionMini(a) {
   return `<div class="mini-card"><div><div class="mini-title">${esc(a.id)} <span class="tag tag-${a.status === "Admitted" ? "rd" : "gn"}">${esc(a.status)}</span> <span class="tag tag-pp">${esc(a.source)}</span></div><div class="mini-sub">${fmtDate(a.openedOn)} · ${esc(a.wardBed || "Ward pending")}</div><div class="mini-sub">${esc(a.reason || a.diagnosis || "No reason entered")}</div></div><button class="btn btn-ghost btn-sm" type="button" onclick="openAdmissionInRecord('${a.id}')">Open</button></div>`;
 }
 
+function renderTimelineVisitItem(v) {
+  const hosp = v.hospitalName || v.hospitalId || "";
+  const hospBadge = hosp ? `<span class="hosp-badge-sm">${esc(hosp)}</span>` : "";
+  const vitals = formatVitals(v);
+  const isER = v.source === "ER";
+  const dotCls = isER ? "tl-dot-er" : v.severity === "Follow-up" ? "tl-dot-fu" : "tl-dot-opd";
+  return `<div class="tl-event">
+    <div class="tl-dot ${dotCls}"></div>
+    <div class="tl-body">
+      <div class="tl-hdr">
+        <span class="tl-date">${fmtDate(v.date)}</span>
+        <span class="tag tag-${sevTag(v.severity)}">${esc(v.severity)}</span>
+        <span class="tag tag-${isER ? "rd" : "pp"}">${esc(v.source)}</span>
+        ${hospBadge}
+        ${v.admissionId ? `<button class="tag-btn" type="button" onclick="openAdmissionInRecord('${v.admissionId}')">Ward</button>` : ""}
+      </div>
+      <div class="tl-content">
+        ${v.complaints.length ? `<div class="wrap-tags" style="margin-bottom:5px">${v.complaints.map((c) => `<span class="tag tag-bl">${esc(c)}</span>`).join("")}</div>` : ""}
+        ${v.dx ? `<div class="tl-row"><strong>Diagnosis:</strong> ${esc(v.dx)}</div>` : ""}
+        ${v.rx ? `<div class="tl-row"><strong>Plan:</strong> ${esc(v.rx)}</div>` : ""}
+        ${vitals ? `<div class="tl-row"><strong>Vitals:</strong> ${esc(vitals)}</div>` : ""}
+        ${v.attendantName ? `<div class="tl-row"><strong>Attendant:</strong> ${esc(v.attendantName)}${v.attendantPhone ? ` · ${esc(v.attendantPhone)}` : ""}</div>` : ""}
+        ${v.fu ? `<div class="tl-row"><strong>Follow-up:</strong> ${fmtDate(v.fu)}</div>` : ""}
+        ${isER && v.conditionAtPresentation ? `<div class="tl-row"><strong>Condition:</strong> ${esc(v.conditionAtPresentation)} · <strong>Outcome:</strong> ${esc(v.erOutcome || "—")}</div>` : ""}
+      </div>
+      <div class="btn-row mt12"><button class="btn btn-ghost btn-sm" type="button" onclick="openVisitInRecord('${v.id}')">Details</button></div>
+    </div>
+  </div>`;
+}
+
+function renderTimelineAdmissionItem(a) {
+  const hosp = a.hospitalName || a.hospitalId || "";
+  const hospBadge = hosp ? `<span class="hosp-badge-sm">${esc(hosp)}</span>` : "";
+  const spanDays = Math.max(1, Math.round((new Date(`${a.dischargeDate || iso()}T00:00:00`) - new Date(`${a.openedOn}T00:00:00`)) / 86400000) + 1);
+  return `<div class="tl-event tl-event-adm">
+    <div class="tl-dot tl-dot-adm"></div>
+    <div class="tl-body tl-body-adm">
+      <div class="tl-hdr">
+        <span class="tl-date">${fmtDate(a.openedOn)}</span>
+        <span class="tag tag-${a.status === "Admitted" ? "rd" : "gn"}">${esc(a.status)}</span>
+        <span class="tag tag-pp">${esc(a.source)}</span>
+        ${hospBadge}
+      </div>
+      <div class="tl-subtitle">${esc(a.id)} · ${esc(a.wardBed || "Ward pending")} · ${spanDays} day${spanDays > 1 ? "s" : ""}${a.dischargeDate ? ` · Discharged ${fmtDate(a.dischargeDate)}` : ""}</div>
+      <div class="tl-content">
+        ${a.reason ? `<div class="tl-row"><strong>Reason:</strong> ${esc(a.reason)}</div>` : ""}
+        ${a.diagnosis ? `<div class="tl-row"><strong>Diagnosis:</strong> ${esc(a.diagnosis)}</div>` : ""}
+        ${a.treatment ? `<div class="tl-row"><strong>Treatment:</strong> ${esc(a.treatment)}</div>` : ""}
+        ${a.outcome ? `<div class="tl-row"><strong>Outcome:</strong> ${esc(a.outcome)}</div>` : ""}
+        ${a.consultant ? `<div class="tl-row"><strong>Consultant:</strong> ${esc(a.consultant)}</div>` : ""}
+      </div>
+      <div class="btn-row mt12"><button class="btn btn-ghost btn-sm" type="button" onclick="openAdmissionInRecord('${a.id}')">Open Ward Record</button></div>
+    </div>
+  </div>`;
+}
+
 function renderRecordFocus(p) {
   if (state.recordFocusType === "admission" && state.recordFocusId) {
     const a = admission(state.recordFocusId);
@@ -1018,8 +1090,25 @@ function showDetail(pid, opts = {}) {
     sectionHtml += `<div class="det-stitle">Longitudinal History</div>${security.role === "editor" ? `<div class="focus-panel"><label class="lbl">Birth History</label><textarea class="inp" id="pBirthHistory" rows="3">${esc(p.birthHistory || "")}</textarea><label class="lbl">Feeding History</label><textarea class="inp" id="pFeedingHistory" rows="3">${esc(p.feedingHistory || "")}</textarea><label class="lbl">Milestones History</label><textarea class="inp" id="pMilestoneHistory" rows="3">${esc(p.milestoneHistory || "")}</textarea><label class="lbl">Family History</label><textarea class="inp" id="pFamilyHistory" rows="3">${esc(p.familyHistory || "")}</textarea><label class="lbl">Suspicion / Differential Diagnosis</label><textarea class="inp" id="pDifferentialDx" rows="3">${esc(p.differentialDx || "")}</textarea><div class="btn-row"><button class="btn btn-green" type="button" onclick="savePatientProfile('${p.id}')">Save Record History</button></div></div>` : `<div class="focus-grid"><div><strong>Birth History</strong><p>${esc(p.birthHistory || "—")}</p></div><div><strong>Feeding History</strong><p>${esc(p.feedingHistory || "—")}</p></div><div><strong>Milestones</strong><p>${esc(p.milestoneHistory || "—")}</p></div><div><strong>Family History</strong><p>${esc(p.familyHistory || "—")}</p></div><div><strong>Suspicion / Differential Diagnosis</strong><p>${esc(p.differentialDx || "—")}</p></div></div>`}`;
   } else {
     sectionHtml += renderRecordFocus(p);
-    sectionHtml += `<div class="det-stitle">Ward Encounters</div>${pa.length ? pa.map(recordAdmissionMini).join("") : '<p class="empty">No ward records linked.</p>'}`;
-    sectionHtml += `<div class="det-stitle">All Visits (${pv.length})</div>${pv.length ? pv.map(recordVisitCard).join("") : '<p class="empty">No visits recorded.</p>'}`;
+    // Unified chronological timeline across all hospitals
+    const tlevents = [
+      ...pv.map((v) => ({ type: "visit", date: v.date, data: v })),
+      ...pa.map((a) => ({ type: "admission", date: a.openedOn, data: a })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const hospSet = new Set(
+      [...pv.map((v) => v.hospitalName), ...pa.map((a) => a.hospitalName)].filter(Boolean)
+    );
+    const multiHospNote = hospSet.size > 1
+      ? `<div class="quick-note" style="margin-bottom:8px">Records span <strong>${hospSet.size} hospitals</strong>: ${[...hospSet].map((h) => `<strong>${esc(h)}</strong>`).join(", ")}.</div>`
+      : "";
+
+    sectionHtml += `<div class="det-stitle">Full Timeline (${tlevents.length} event${tlevents.length !== 1 ? "s" : ""})</div>${multiHospNote}`;
+    sectionHtml += `<div class="tl-track">${tlevents.length
+      ? tlevents.map((evt) => evt.type === "visit"
+          ? renderTimelineVisitItem(evt.data)
+          : renderTimelineAdmissionItem(evt.data)).join("")
+      : '<p class="empty">No records yet.</p>'}</div>`;
   }
 
   const html = `<div class="det-hdr"><div class="det-av">${esc(init)}</div><div><div class="det-name">${esc(p.name)}</div><div class="det-meta">${esc(p.uhid)} · ${esc(ageLabel(p))} · ${esc(ageBand(p))} · ${esc(p.gender || "Gender not entered")}</div><div class="det-meta">${esc(p.area || "No area")} · ${esc(p.guardian || "No guardian")}${p.phone ? ` · ${esc(p.phone)}` : ""}</div></div></div><div class="btn-row">${security.role === "editor" ? `<button class="btn btn-ghost btn-sm" type="button" onclick="startVisitForPatient('${p.id}')">New Visit</button>` : ""}<button class="btn btn-ghost btn-sm" type="button" onclick="sharePatientTimeline('${p.id}')">Share Timeline</button></div><div class="summary-strip"><div class="summary-pill"><span>Total Visits</span><strong>${pv.length}</strong></div><div class="summary-pill"><span>Ward Records</span><strong>${pa.length}</strong></div><div class="summary-pill"><span>Latest Diagnosis</span><strong>${esc(latest?.dx || "—")}</strong></div><div class="summary-pill"><span>Allergies</span><strong>${esc(p.allergies || "—")}</strong></div></div><div class="segment-row"><button class="seg ${section === "overview" ? "active" : ""}" type="button" onclick="openRecordSection('overview')">Overview</button><button class="seg ${section === "history" ? "active" : ""}" type="button" onclick="openRecordSection('history')">History</button><button class="seg ${section === "encounters" ? "active" : ""}" type="button" onclick="openRecordSection('encounters')">Encounters</button></div>${sectionHtml}`;
@@ -1225,6 +1314,21 @@ function fillAdmission(a) {
   const spanDays = Math.max(1, Math.round((new Date(`${a.dischargeDate || iso()}T00:00:00`) - new Date(`${a.openedOn}T00:00:00`)) / 86400000) + 1);
   $("#admSummary").innerHTML = `<div class="summary-pill"><span>Patient</span><strong>${esc(p?.uhid || "—")}</strong></div><div class="summary-pill"><span>Source</span><strong>${esc(a.source || "—")}</strong></div><div class="summary-pill"><span>Ward</span><strong>${esc(a.wardBed || "—")}</strong></div><div class="summary-pill"><span>Hospital Span</span><strong>${spanDays} day${spanDays > 1 ? "s" : ""}</strong></div><div class="summary-pill"><span>Current Dx</span><strong>${esc(a.diagnosis || v?.dx || "—")}</strong></div>`;
   $("#admDetailCard").style.display = "";
+
+  // Seal historical fields — locked once they have content, regardless of role
+  const HIST_SEALS = ["#aHistory", "#aReason", "#aPastHistory", "#aFamilyHistory",
+    "#aAllergies", "#aExamGeneral", "#aExamResp", "#aExamCvs", "#aExamCns", "#aExamGit"];
+  HIST_SEALS.forEach((sel) => {
+    const el = $(sel);
+    if (!el) return;
+    delete el.dataset.histLocked;
+    el.disabled = false;
+    if (el.value.trim()) {
+      el.dataset.histLocked = "1";
+      el.disabled = true;
+      el.title = "\uD83D\uDD12 Historical record \u2014 cannot be modified once entered";
+    }
+  });
 }
 
 function openAdmission(id, go = true) {
@@ -1274,9 +1378,38 @@ function patientTimelineText(pid) {
   if (!p) return "";
   const pv = patientVisits(pid);
   const pa = patientAdmissions(pid);
-  const visitLines = pv.map((v) => `- ${fmtDate(v.date)} | ${v.source} | ${v.severity} | ${v.dx || "No diagnosis"}${v.admissionId ? ` | linked ${v.admissionId}` : ""}`).join("\n");
-  const admLines = pa.map((a) => `- ${a.id} | ${a.source} | ${a.status} | ${fmtDate(a.openedOn)} | ${a.diagnosis || a.reason || "No diagnosis"}`).join("\n");
-  return `${p.name} (${p.uhid})\nAge: ${ageLabel(p)}\nArea: ${p.area || "—"}\nGuardian: ${p.guardian || "—"}\nAllergies: ${p.allergies || "—"}\n\nVisits\n${visitLines || "- No visits"}\n\nAdmissions\n${admLines || "- No admissions"}`;
+
+  const events = [
+    ...pv.map((v) => ({ type: "visit", date: v.date, data: v })),
+    ...pa.map((a) => ({ type: "admission", date: a.openedOn, data: a })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const lines = events.map((evt) => {
+    if (evt.type === "visit") {
+      const v = evt.data;
+      return [
+        `[${fmtDate(v.date)}] ${v.source} · ${v.severity}${v.hospitalName ? ` @ ${v.hospitalName}` : ""}`,
+        `  Complaints: ${v.complaints.join(", ") || "—"}`,
+        `  Diagnosis: ${v.dx || "Pending"}`,
+        v.rx ? `  Plan: ${v.rx}` : null,
+        formatVitals(v) ? `  Vitals: ${formatVitals(v)}` : null,
+        v.attendantName ? `  Attendant: ${v.attendantName}${v.attendantPhone ? ` · ${v.attendantPhone}` : ""}` : null,
+        v.fu ? `  Follow-up: ${fmtDate(v.fu)}` : null,
+      ].filter(Boolean).join("\n");
+    } else {
+      const a = evt.data;
+      return [
+        `[${fmtDate(a.openedOn)}] WARD ADMISSION${a.hospitalName ? ` @ ${a.hospitalName}` : ""} · ${a.id}`,
+        `  Status: ${a.status}${a.dischargeDate ? ` | Discharged: ${fmtDate(a.dischargeDate)}` : ""}`,
+        `  Ward: ${a.wardBed || "—"} · Consultant: ${a.consultant || "—"}`,
+        `  Diagnosis: ${a.diagnosis || a.reason || "—"}`,
+        a.treatment ? `  Treatment: ${a.treatment}` : null,
+        a.outcome ? `  Outcome: ${a.outcome}` : null,
+      ].filter(Boolean).join("\n");
+    }
+  }).join("\n\n");
+
+  return `PATIENT TIMELINE\n${"─".repeat(40)}\n${p.name} (${p.uhid})\nAge: ${ageLabel(p)} · ${p.gender || "—"}\nArea: ${p.area || "—"} · Guardian: ${p.guardian || "—"}\nAllergies: ${p.allergies || "—"}\n${"─".repeat(40)}\n\n${lines || "No records found."}`;
 }
 
 function sharePatientTimeline(pid) {

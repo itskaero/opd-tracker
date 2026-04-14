@@ -1798,3 +1798,140 @@ textarea:disabled {
   .sync-lbl { display: none; }
   .hdr-date  { display: none; }
 }
+
+/* ── Patient Timeline ── */
+.tl-track {
+  margin-top: 10px;
+}
+
+.tl-event {
+  position: relative;
+  padding: 0 0 14px 28px;
+}
+
+/* vertical connector line between events */
+.tl-event::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: var(--bdr2);
+  border-radius: 2px;
+}
+
+.tl-event:last-child::before {
+  display: none;
+}
+
+/* colored dot marker */
+.tl-dot {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg);
+  z-index: 1;
+  background: var(--tx2);
+}
+
+.tl-dot-opd { background: var(--accent); }
+.tl-dot-er  { background: var(--red); }
+.tl-dot-fu  { background: var(--green); }
+.tl-dot-adm { background: var(--orange); }
+
+.tl-body {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+}
+
+.tl-body:hover {
+  border-color: var(--bdr2);
+}
+
+.tl-body-adm {
+  border-left: 3px solid var(--orange);
+  background: rgba(219, 109, 40, 0.04);
+}
+
+.tl-hdr {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.tl-date {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--tx1);
+}
+
+.tl-subtitle {
+  font-size: 0.77rem;
+  color: var(--tx2);
+  margin-bottom: 6px;
+}
+
+.tl-content {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.tl-row {
+  margin: 2px 0;
+  color: var(--tx2);
+}
+
+.tl-row strong {
+  color: var(--tx1);
+  font-weight: 500;
+}
+
+/* ── Hospital badge in records ── */
+.hosp-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: var(--pill);
+  background: rgba(188, 140, 255, 0.1);
+  border: 1px solid rgba(188, 140, 255, 0.22);
+  color: var(--purple);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ── Historically locked field indicator ── */
+.inp[data-hist-locked="1"] {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border-color: rgba(240, 246, 252, 0.06) !important;
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+.inp[data-hist-locked="1"]::after {
+  content: "🔒";
+}
+
+/* ── Timeline responsive ── */
+@media (max-width: 480px) {
+  .tl-event {
+    padding-left: 22px;
+  }
+  .tl-dot {
+    width: 13px;
+    height: 13px;
+  }
+  .tl-event::before {
+    left: 5px;
+  }
+}
+
