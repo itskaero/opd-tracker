@@ -1785,6 +1785,51 @@ textarea:disabled {
   margin-bottom: 10px;
 }
 
+#setupSavedPane {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.saved-hosp-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bdr2);
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+  transition: all 0.15s;
+  margin-bottom: 6px;
+}
+
+.saved-hosp-item:last-child { margin-bottom: 0; }
+
+.saved-hosp-item:hover {
+  border-color: rgba(88, 166, 255, 0.3);
+  background: rgba(88, 166, 255, 0.06);
+}
+
+.saved-hosp-item.active {
+  border-color: rgba(63, 185, 80, 0.35);
+  background: rgba(63, 185, 80, 0.07);
+}
+
+.saved-hosp-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tx1);
+}
+
+.saved-hosp-meta {
+  font-size: 0.75rem;
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
 /* ── Improved stats gradient numbers ── */
 .stat-n {
   background: linear-gradient(135deg, var(--tx1), var(--tx2));

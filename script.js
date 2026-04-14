@@ -145,9 +145,22 @@ const hospital = (() => {
     return _h;
   }
 
+  function savedList() {
+    try { return JSON.parse(localStorage.getItem("opd_hospitals_list") || "[]"); } catch { return []; }
+  }
+
+  function addToSavedList(data) {
+    const list = savedList();
+    const idx = list.findIndex(h => h.code === data.code);
+    if (idx >= 0) list[idx] = data; else list.push(data);
+    localStorage.setItem("opd_hospitals_list", JSON.stringify(list));
+    fbSync.pushHospitalsList(list);
+  }
+
   function save(data) {
     _h = data;
     localStorage.setItem("opd_hospital", JSON.stringify(data));
+    addToSavedList(data);
     render();
     syncMRPreview();
     fbSync.init();
@@ -233,7 +246,59 @@ const hospital = (() => {
     toast(`Hospital saved: ${name} (${code}). MR# prefix updated.`, "ok");
   }
 
-  return { load, save, get, code, mrPrefix, render, detectAndShow, saveFromModal };
+  async function switchTo(hospitalCode) {
+    const list = savedList();
+    const h = list.find(item => item.code === hospitalCode);
+    if (!h) return;
+    save(h); // updates _h, re-inits fbSync path
+    // Reset db to this hospital's local cache (or empty)
+    loadDB();
+    renderDash();
+    renderAdmissions();
+    syncMRPreview();
+    closeHospitalModal();
+    toast(`Switched to ${h.name}`, "ok");
+    // Pull latest from Firestore in background
+    if (fbSync.isReady()) {
+      const remote = await fbSync.pull();
+      if (remote) {
+        db.patients   = remote.patients.map(normPatient);
+        db.visits     = remote.visits.map(normVisit);
+        db.admissions = (remote.admissions || []).map(normAdmission);
+        if (remote.meta) db.meta = { ...db.meta, ...remote.meta };
+        saveDB();
+        renderDash();
+        renderAdmissions();
+        syncMRPreview();
+        toast(`${h.name} — records loaded from cloud.`, "ok");
+      }
+      await fbSync.pullPin();
+    }
+  }
+
+  function renderSavedPane() {
+    const pane = $("#setupSavedPane");
+    if (!pane) return;
+    const list = savedList();
+    if (!list.length) {
+      pane.innerHTML = '<p class="modal-hint">No saved hospitals yet. Use Auto-Detect or Manual Entry to add one.</p>';
+      return;
+    }
+    const current = code();
+    pane.innerHTML = "";
+    list.forEach(h => {
+      const btn = document.createElement("button");
+      btn.className = "saved-hosp-item" + (current === h.code ? " active" : "");
+      btn.type = "button";
+      btn.innerHTML =
+        `<span class="saved-hosp-name">${esc(h.name)}</span>` +
+        `<span class="saved-hosp-meta">${esc(h.code)}${h.city ? " \u00b7 " + esc(h.city) : ""}</span>`;
+      btn.addEventListener("click", () => switchTo(h.code));
+      pane.appendChild(btn);
+    });
+  }
+
+  return { load, save, get, code, mrPrefix, render, detectAndShow, saveFromModal, savedList, switchTo, renderSavedPane };
 })();
 
 window.hospital = hospital;
@@ -241,8 +306,11 @@ window.hospital = hospital;
 function openHospitalModal() {
   $("#hospErr").textContent = "";
   $("#detectedBox").style.display = "none";
+  hospital.renderSavedPane();
   const h = hospital.get();
-  if (h) {
+  if (hospital.savedList().length > 0) {
+    hospSetupMode("saved");
+  } else if (h) {
     hospSetupMode("manual");
     $("#hospNameInput").value = h.name || "";
     $("#hospCodeInput").value = h.code || "";
@@ -258,8 +326,12 @@ function closeHospitalModal() { $("#hospitalModal").classList.remove("open"); }
 function hospSetupMode(mode) {
   $("#setupModeAuto").classList.toggle("active", mode === "auto");
   $("#setupModeManual").classList.toggle("active", mode === "manual");
+  const savedBtn = $("#setupModeSaved");
+  if (savedBtn) savedBtn.classList.toggle("active", mode === "saved");
   $("#setupAutoPane").style.display   = mode === "auto"   ? "" : "none";
   $("#setupManualPane").style.display = mode === "manual" ? "" : "none";
+  const savedPane = $("#setupSavedPane");
+  if (savedPane) savedPane.style.display = mode === "saved" ? "" : "none";
 }
 
 window.openHospitalModal  = openHospitalModal;
@@ -282,6 +354,8 @@ const fbSync = (() => {
       _db   = firebase.firestore();
       _path = `hospitals/${hospital.code() || "default"}`;
       setSyncStatus("synced");
+      pullHospitalsList();
+      pullPin();
     } catch (e) {
       console.warn("Firebase init:", e);
       setSyncStatus("error");
@@ -318,6 +392,28 @@ const fbSync = (() => {
     }
   }
 
+  async function pushPin(hashedPin) {
+    if (!isReady()) return;
+    try {
+      await _db.doc(`${_path}/meta/pin`).set({ pin: hashedPin }, { merge: true });
+    } catch (e) {
+      console.warn("Firebase pin push:", e);
+    }
+  }
+
+  async function pullPin() {
+    if (!isReady()) return;
+    try {
+      const snap = await _db.doc(`${_path}/meta/pin`).get();
+      if (!snap.exists) return;
+      const remotePin = snap.data()?.pin;
+      if (!remotePin) return;
+      setEditorPin(remotePin); // Firestore is authoritative — always sync
+    } catch (e) {
+      console.warn("Firebase pin pull:", e);
+    }
+  }
+
   async function pull() {
     if (!isReady()) return null;
     setSyncStatus("syncing");
@@ -342,7 +438,35 @@ const fbSync = (() => {
     }
   }
 
-  return { init, schedulePush, pull, isReady };
+  async function pushHospitalsList(list) {
+    if (!isReady()) return;
+    try {
+      await _db.doc("registry/hospitals").set({ list }, { merge: true });
+    } catch (e) {
+      console.warn("Firebase hospitals push:", e);
+    }
+  }
+
+  async function pullHospitalsList() {
+    if (!isReady()) return;
+    try {
+      const snap = await _db.doc("registry/hospitals").get();
+      if (!snap.exists) return;
+      const remoteList = snap.data()?.list || [];
+      if (!remoteList.length) return;
+      const localList = hospital.savedList();
+      const merged = [...localList];
+      remoteList.forEach(rh => {
+        const idx = merged.findIndex(lh => lh.code === rh.code);
+        if (idx >= 0) merged[idx] = rh; else merged.push(rh);
+      });
+      localStorage.setItem("opd_hospitals_list", JSON.stringify(merged));
+    } catch (e) {
+      console.warn("Firebase hospitals pull:", e);
+    }
+  }
+
+  return { init, schedulePush, pull, isReady, pushHospitalsList, pushPin, pullPin };
 })();
 
 function calcAge(dob) {
@@ -393,11 +517,16 @@ function nextId(kind, prefix) {
   return `${prefix}${pad(db.meta[kind])}`;
 }
 
+function dbKey(suffix) {
+  const code = hospital.code();
+  return code ? `opd_${suffix}_${code}` : `opd_${suffix}`;
+}
+
 function saveDB() {
-  localStorage.setItem("opd_p",    JSON.stringify(db.patients));
-  localStorage.setItem("opd_v",    JSON.stringify(db.visits));
-  localStorage.setItem("opd_a",    JSON.stringify(db.admissions));
-  localStorage.setItem("opd_meta", JSON.stringify(db.meta));
+  localStorage.setItem(dbKey("p"),    JSON.stringify(db.patients));
+  localStorage.setItem(dbKey("v"),    JSON.stringify(db.visits));
+  localStorage.setItem(dbKey("a"),    JSON.stringify(db.admissions));
+  localStorage.setItem(dbKey("meta"), JSON.stringify(db.meta));
   fbSync.schedulePush();
 }
 
@@ -529,10 +658,12 @@ function seed() {
 }
 
 function loadDB() {
-  db.patients = (JSON.parse(localStorage.getItem("opd_p") || "[]") || []).map(normPatient);
-  db.visits = (JSON.parse(localStorage.getItem("opd_v") || "[]") || []).map(normVisit);
-  db.admissions = (JSON.parse(localStorage.getItem("opd_a") || "[]") || []).map(normAdmission);
-  db.meta = JSON.parse(localStorage.getItem("opd_meta") || '{"patientCounter":0,"visitCounter":0,"admissionCounter":0}') || db.meta;
+  // Per-hospital key with fallback to legacy unprefixed key (migration)
+  const get = (s) => localStorage.getItem(dbKey(s)) || localStorage.getItem(`opd_${s}`) || null;
+  db.patients   = (JSON.parse(get("p")    || "[]") || []).map(normPatient);
+  db.visits     = (JSON.parse(get("v")    || "[]") || []).map(normVisit);
+  db.admissions = (JSON.parse(get("a")    || "[]") || []).map(normAdmission);
+  db.meta       = JSON.parse(get("meta")  || '{"patientCounter":0,"visitCounter":0,"admissionCounter":0}') || db.meta;
   if (!db.patients.length && !db.visits.length && !db.admissions.length) seed();
   const pids = new Set(db.patients.map((p) => p.id));
   db.visits = db.visits.filter((v) => pids.has(v.pid));
@@ -838,6 +969,7 @@ async function toggleRole() {
     if (second === null) return;
     if (first !== second) { toast("PINs did not match. Try again.", "err"); return; }
     setEditorPin(first);
+    fbSync.pushPin(first);
     security.role = "editor";
     applyRole();
     toast(`PIN set for ${hospName}. Editing unlocked.`, "ok");

@@ -870,6 +870,7 @@
         <div class="setup-mode-row">
           <button class="seg active" id="setupModeAuto" onclick="hospSetupMode('auto')">Auto-Detect</button>
           <button class="seg" id="setupModeManual" onclick="hospSetupMode('manual')">Manual Entry</button>
+          <button class="seg" id="setupModeSaved" onclick="hospSetupMode('saved')">Saved</button>
         </div>
         <div id="setupAutoPane">
           <p class="modal-hint">Allow location access, then tap below to detect your hospital from GPS coordinates using OpenStreetMap.</p>
@@ -889,6 +890,7 @@
           <label class="lbl">City / Location</label>
           <input class="inp" id="hospCityInput" placeholder="e.g. Bahawalpur" />
         </div>
+        <div id="setupSavedPane" style="display:none"></div>
         <div class="pin-err" id="hospErr"></div>
       </div>
       <div class="modal-ft">
